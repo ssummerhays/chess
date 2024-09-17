@@ -10,9 +10,9 @@ import java.util.Objects;
  */
 public class ChessMove {
 
-    private ChessPosition startPosition;
-    private ChessPosition endPosition;
-    private ChessPiece.PieceType promotionPiece;
+    private final ChessPosition startPosition;
+    private final ChessPosition endPosition;
+    private final ChessPiece.PieceType promotionPiece;
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.startPosition = startPosition;
@@ -46,11 +46,7 @@ public class ChessMove {
 
     @Override
     public String toString() {
-        final StringBuilder sb=new StringBuilder("");
-        sb.append(startPosition.toString());
-        sb.append(" --> ");
-        sb.append(endPosition.toString());
-        return sb.toString();
+      return startPosition.toString() + " --> " + endPosition.toString();
     }
 
     @Override

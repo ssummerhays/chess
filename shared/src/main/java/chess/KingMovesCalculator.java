@@ -11,10 +11,10 @@ public class KingMovesCalculator {
     int currentCol=myPosition.getColumn();
 
     for (int r=currentRow - 1; r <= currentRow + 1; r++) {
+      if (r>=8 || r<1) {continue;}
       for (int c=currentCol - 1; c <= currentCol + 1; c++) {
-        if (r == currentRow && c == currentCol) {
-          continue;
-        } else {
+        if (c>=8 || c<1) {continue;}
+        if (r != currentRow || c != currentCol) {
           ChessPosition endPosition=new ChessPosition(r, c);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
           if (board.getPiece(endPosition) == null) {
