@@ -18,7 +18,14 @@ public class BishopMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentRow += 1;
       currentCol += 1;
     }
@@ -33,7 +40,14 @@ public class BishopMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentRow -= 1;
       currentCol -= 1;
     }
@@ -48,7 +62,14 @@ public class BishopMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentRow += 1;
       currentCol -= 1;
     }
@@ -63,7 +84,14 @@ public class BishopMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentRow -= 1;
       currentCol += 1;
     }
