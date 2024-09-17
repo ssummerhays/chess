@@ -17,7 +17,14 @@ public class KingMovesCalculator {
         } else {
           ChessPosition endPosition=new ChessPosition(r, c);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
-          moves.add(move);
+          if (board.getPiece(endPosition) == null) {
+            moves.add(move);
+          } else {
+            if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+              moves.add(move);
+            }
+            break;
+          }
         }
       }
     }
