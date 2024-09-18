@@ -72,7 +72,7 @@ public class ChessPiece {
             case QUEEN -> null;
             case ROOK -> null;
             case BISHOP -> new BishopMovesCalculator().pieceMoves(board, myPosition);
-            case KNIGHT -> null;
+            case KNIGHT -> new KnightMovesCalculator().pieceMoves(board, myPosition);
             case PAWN -> null;
         } );
     }
