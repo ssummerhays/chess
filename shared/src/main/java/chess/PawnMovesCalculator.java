@@ -50,12 +50,16 @@ public class PawnMovesCalculator {
       }
 
       if (myPosition.getRow() == 2) {
-        moves.add(move);
+        if (board.getPiece(endPosition) == null) {
+          moves.add(move);
+        }
 
         newRow += 1;
         endPosition = new ChessPosition(newRow, newCol);
         move = new ChessMove(myPosition, endPosition, null);
-        moves.add(move);
+        if (board.getPiece(endPosition) == null) {
+          moves.add(move);
+        }
       } else if (myPosition.getRow() == 7) {
         endPosition = new ChessPosition(newRow, newCol);
 
@@ -148,12 +152,16 @@ public class PawnMovesCalculator {
       }
 
       if (myPosition.getRow() == 7) {
-        moves.add(move);
+        if (board.getPiece(endPosition) == null) {
+          moves.add(move);
+        }
 
         newRow -= 1;
         endPosition = new ChessPosition(newRow, newCol);
         move = new ChessMove(myPosition, endPosition, null);
-        moves.add(move);
+        if (board.getPiece(endPosition) == null) {
+          moves.add(move);
+        }
       } else if (myPosition.getRow() == 2) {
         endPosition = new ChessPosition(newRow, newCol);
 
