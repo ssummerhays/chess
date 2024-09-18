@@ -19,32 +19,54 @@ public class PawnMovesCalculator {
       ChessPosition endPosition = new ChessPosition(newRow, newCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
 
-      boolean rightWall = false;
-      boolean leftWall = false;
-
-      if (newCol == 8) {
-        rightWall = true;
-      }
-      if (newCol == 1) {
-        leftWall = true;
-      }
+      boolean rightWall = newCol == 8;
+      boolean leftWall = newCol == 1;
 
       if (board.getPiece(endPosition) != null) {
         if (rightWall) {
           ChessPosition left = new ChessPosition(newRow, newCol - 1);
           if (board.getPiece(left) == null) {
             return moves;
+          } else {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
           }
         } else if (leftWall) {
           ChessPosition right = new ChessPosition(newRow, newCol + 1);
           if (board.getPiece(right) == null) {
             return moves;
+          } else {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
           }
         } else {
           ChessPosition right = new ChessPosition(newRow, newCol + 1);
           ChessPosition left = new ChessPosition(newRow, newCol - 1);
           if (board.getPiece(right) == null && board.getPiece(left) == null) {
             return moves;
+          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          } else if (board.getPiece(right) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          } else if (board.getPiece(left) != null) {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
           }
         }
       }
@@ -60,6 +82,54 @@ public class PawnMovesCalculator {
         if (board.getPiece(endPosition) == null) {
           moves.add(move);
         }
+
+        if (rightWall) {
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(left) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        } else if (leftWall) {
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          if (board.getPiece(right) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          }
+        } else {
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(right) == null && board.getPiece(left) == null) {
+            return moves;
+          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          } else if (board.getPiece(right) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          } else if (board.getPiece(left) != null) {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        }
+
       } else if (myPosition.getRow() == 7) {
         endPosition = new ChessPosition(newRow, newCol);
 
@@ -111,7 +181,60 @@ public class PawnMovesCalculator {
           }
         }
 
-      } else {moves.add(move);}
+      } else {
+        if (board.getPiece(endPosition) == null) {
+          moves.add(move);
+        }
+        if (rightWall) {
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(left) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        } else if (leftWall) {
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          if (board.getPiece(right) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          }
+        } else {
+          if (board.getPiece(endPosition) == null) {
+            moves.add(move);
+          }
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(right) == null && board.getPiece(left) == null) {
+            return moves;
+          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          } else if (board.getPiece(right) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          } else if (board.getPiece(left) != null) {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        }
+      }
     }
 
 //    BlackPawn
@@ -121,32 +244,54 @@ public class PawnMovesCalculator {
       ChessPosition endPosition = new ChessPosition(newRow, newCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
 
-      boolean rightWall = false;
-      boolean leftWall = false;
-
-      if (newCol == 8) {
-        rightWall = true;
-      }
-      if (newCol == 1) {
-        leftWall = true;
-      }
+      boolean rightWall = newCol == 8;
+      boolean leftWall = newCol == 1;
 
       if (board.getPiece(endPosition) != null) {
         if (rightWall) {
           ChessPosition left = new ChessPosition(newRow, newCol - 1);
           if (board.getPiece(left) == null) {
             return moves;
+          } else {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
           }
         } else if (leftWall) {
           ChessPosition right = new ChessPosition(newRow, newCol + 1);
           if (board.getPiece(right) == null) {
             return moves;
+          } else {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
           }
         } else {
           ChessPosition right = new ChessPosition(newRow, newCol + 1);
           ChessPosition left = new ChessPosition(newRow, newCol - 1);
           if (board.getPiece(right) == null && board.getPiece(left) == null) {
             return moves;
+          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          } else if (board.getPiece(right) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          } else if (board.getPiece(left) != null) {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
           }
         }
       }
@@ -162,6 +307,54 @@ public class PawnMovesCalculator {
         if (board.getPiece(endPosition) == null) {
           moves.add(move);
         }
+
+        if (rightWall) {
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(left) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        } else if (leftWall) {
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          if (board.getPiece(right) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          }
+        } else {
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(right) == null && board.getPiece(left) == null) {
+            return moves;
+          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          } else if (board.getPiece(right) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          } else if (board.getPiece(left) != null) {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        }
+
       } else if (myPosition.getRow() == 2) {
         endPosition = new ChessPosition(newRow, newCol);
 
@@ -213,8 +406,60 @@ public class PawnMovesCalculator {
           }
         }
 
-
-      } else {moves.add(move);}
+      } else {
+        if (board.getPiece(endPosition) == null) {
+          moves.add(move);
+        }
+        if (rightWall) {
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(left) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        } else if (leftWall) {
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          if (board.getPiece(right) == null) {
+            return moves;
+          } else {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          }
+        } else {
+          if (board.getPiece(endPosition) == null) {
+            moves.add(move);
+          }
+          ChessPosition right = new ChessPosition(newRow, newCol + 1);
+          ChessPosition left = new ChessPosition(newRow, newCol - 1);
+          if (board.getPiece(right) == null && board.getPiece(left) == null) {
+            return moves;
+          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          } else if (board.getPiece(right) != null) {
+            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove rightMove = new ChessMove(myPosition, right, null);
+              moves.add(rightMove);
+            }
+          } else if (board.getPiece(left) != null) {
+            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
+              ChessMove leftMove = new ChessMove(myPosition, left, null);
+              moves.add(leftMove);
+            }
+          }
+        }
+      }
     }
 
     return moves;
