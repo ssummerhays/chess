@@ -15,14 +15,31 @@ public class PawnMovesCalculator {
 
     if (pieceColor == ChessGame.TeamColor.WHITE) {
       newRow += 1;
+
+      ChessPosition endPosition = new ChessPosition(newRow, newCol);
+      ChessMove move = new ChessMove(myPosition, endPosition, null);
+      moves.add(move);
+
+      if (myPosition.getRow() == 2) {
+        newRow += 1;
+        endPosition = new ChessPosition(newRow, newCol);
+        move = new ChessMove(myPosition, endPosition, null);
+        moves.add(move);
+      }
     } else {
       newRow -= 1;
+
+      ChessPosition endPosition = new ChessPosition(newRow, newCol);
+      ChessMove move = new ChessMove(myPosition, endPosition, null);
+      moves.add(move);
+
+      if (myPosition.getRow() == 7) {
+        newRow -= 1;
+        endPosition = new ChessPosition(newRow, newCol);
+        move = new ChessMove(myPosition, endPosition, null);
+        moves.add(move);
+      }
     }
-
-    ChessPosition endPosition = new ChessPosition(newRow, newCol);
-    ChessMove move = new ChessMove(myPosition, endPosition, null);
-
-    moves.add(move);
 
     return moves;
   }
