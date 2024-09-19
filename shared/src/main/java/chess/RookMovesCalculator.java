@@ -17,7 +17,14 @@ public class RookMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentRow += 1;
     }
 
@@ -31,7 +38,14 @@ public class RookMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentRow -= 1;
     }
 
@@ -45,7 +59,14 @@ public class RookMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentCol += 1;
     }
 
@@ -59,7 +80,14 @@ public class RookMovesCalculator {
       }
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
-      moves.add(move);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      } else {
+        if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
+          moves.add(move);
+        }
+        break;
+      }
       currentCol -= 1;
     }
 
