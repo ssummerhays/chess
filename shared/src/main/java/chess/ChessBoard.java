@@ -12,7 +12,7 @@ import java.util.HashSet;
  */
 public class ChessBoard {
 
-    private final ChessPiece[][] squares = new ChessPiece[8][8];
+    public ChessPiece[][] squares = new ChessPiece[8][8];
 
     @Override
     public String toString() {
@@ -34,6 +34,20 @@ public class ChessBoard {
 
     public ChessBoard() {
         
+    }
+
+    public ChessBoard(ChessBoard originalBoard) {
+        this.squares = new ChessPiece[8][8];
+        for (int r = 0; r < 8; r++) {
+            for (int c = 0; c < 8; c++) {
+                ChessPiece piece = originalBoard.getPiece(new ChessPosition(r + 1, c + 1));
+                if (piece != null) {
+                    this.squares[r][c] = new ChessPiece(piece.getTeamColor(), piece.getPieceType());
+                } else {
+                    this.squares[r][c] = null;
+                }
+            }
+        }
     }
 
     /**
