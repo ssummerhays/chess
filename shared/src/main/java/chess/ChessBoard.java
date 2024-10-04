@@ -1,6 +1,8 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -11,6 +13,25 @@ import java.util.Arrays;
 public class ChessBoard {
 
     private final ChessPiece[][] squares = new ChessPiece[8][8];
+
+    @Override
+    public String toString() {
+        String result = "";
+        for (int r = 8; r > 0; r--) {
+            for (int c = 1; c <= 8; c++) {
+                ChessPosition pos = new ChessPosition(r, c);
+                ChessPiece piece = getPiece(pos);
+                if (piece == null) {
+                    result += "| ";
+                } else {
+                    result+= "|" + piece.toString();
+                }
+            }
+            result += "|\n";
+        }
+        return result;
+    }
+
     public ChessBoard() {
         
     }
@@ -75,6 +96,56 @@ public class ChessBoard {
 
         squares[7][3] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.QUEEN);
         squares[7][4] = new ChessPiece(ChessGame.TeamColor.BLACK, ChessPiece.PieceType.KING);
+    }
+
+    public void makeHypotheticalMove(ChessMove move) {
+        ChessPosition startPosition=move.getStartPosition();
+        ChessPosition endPosition=move.getEndPosition();
+        ChessPiece.PieceType promotionType=move.getPromotionPiece();
+
+        ChessBoard board = this;
+
+        ChessPiece piece=board.getPiece(startPosition);
+        if (promotionType == null) {
+            board.addPiece(endPosition, piece);
+            board.addPiece(startPosition, null);
+        } else {
+            ChessPiece promotionPiece=new ChessPiece(piece.getTeamColor(), promotionType);
+            board.addPiece(endPosition, promotionPiece);
+            board.addPiece(startPosition, null);
+        }
+    }
+
+    public boolean hypotheticalIsInCheck(ChessGame.TeamColor teamColor) {
+        Collection<ChessMove> potentialMoves = new HashSet<>();
+        ChessPosition kingPosition = new ChessPosition(1, 1);
+        ChessPosition currentPosition;
+        ChessPiece currentPiece;
+
+        ChessBoard board = this;
+
+        for (int r = 1; r <= 8; r++) {
+            for (int c = 1; c <= 8; c++) {
+                currentPosition = new ChessPosition(r, c);
+                currentPiece = board.getPiece(currentPosition);
+                if (currentPiece != null) {
+                    if (currentPiece.getTeamColor() != teamColor) {
+                        potentialMoves.addAll(currentPiece.pieceMoves(board, currentPosition));
+                    } else if (currentPiece.getPieceType() == ChessPiece.PieceType.KING) {
+                        kingPosition= new ChessPosition(r, c);
+                    }
+                }
+            }
+        }
+
+        for (ChessMove move : potentialMoves) {
+            ChessPosition end = move.getEndPosition();
+            if (end.getRow() == kingPosition.getRow() && end.getColumn() == kingPosition.getColumn()) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     @Override
