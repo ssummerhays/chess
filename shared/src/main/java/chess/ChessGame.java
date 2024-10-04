@@ -1,8 +1,9 @@
 package chess;
 
+import chess.calculators.*;
+
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * For a class that can manage a chess game, making moves on a board

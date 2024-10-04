@@ -1,4 +1,6 @@
-package chess;
+package chess.calculators;
+
+import chess.*;
 
 import java.util.Collection;
 import java.util.HashSet;
