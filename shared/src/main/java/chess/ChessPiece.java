@@ -33,6 +33,31 @@ public class ChessPiece {
         return Objects.hash(pieceColor, type);
     }
 
+    @Override
+    public String toString() {
+        String pieceStr = "";
+        if (pieceColor == ChessGame.TeamColor.WHITE) {
+            switch (type) {
+                case PAWN -> pieceStr = "P";
+                case KING -> pieceStr = "K";
+                case ROOK -> pieceStr = "R";
+                case QUEEN -> pieceStr = "Q";
+                case BISHOP -> pieceStr = "B";
+                case KNIGHT -> pieceStr = "N";
+            }
+        } else {
+            switch (type) {
+                case PAWN -> pieceStr = "p";
+                case KING -> pieceStr = "k";
+                case ROOK -> pieceStr = "r";
+                case QUEEN -> pieceStr = "q";
+                case BISHOP -> pieceStr = "b";
+                case KNIGHT -> pieceStr = "n";
+            }
+        }
+        return pieceStr;
+    }
+
     /**
      * The various different chess piece options
      */
