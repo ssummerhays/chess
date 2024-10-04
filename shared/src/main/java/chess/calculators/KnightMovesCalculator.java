@@ -105,12 +105,12 @@ public class KnightMovesCalculator {
           ChessMove move=new ChessMove(myPosition, endPosition, null);
           if (board.getPiece(endPosition) != null) {
             if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              if (!game.willBeInCheck(move, teamColor)) {
+              if (game.wontBeInCheck(move, teamColor)) {
                 moves.add(move);
               }
             }
           } else {
-            if (!game.willBeInCheck(move, teamColor)) {
+            if (game.wontBeInCheck(move, teamColor)) {
               moves.add(move);
             }
           }
@@ -121,12 +121,12 @@ public class KnightMovesCalculator {
           ChessMove move=new ChessMove(myPosition, endPosition, null);
           if (board.getPiece(endPosition) != null) {
             if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              if (!game.willBeInCheck(move, teamColor)) {
+              if (game.wontBeInCheck(move, teamColor)) {
                 moves.add(move);
               }
             }
           } else {
-            if (!game.willBeInCheck(move, teamColor)) {
+            if (game.wontBeInCheck(move, teamColor)) {
               moves.add(move);
             }
           }
@@ -140,12 +140,12 @@ public class KnightMovesCalculator {
           ChessMove move=new ChessMove(myPosition, endPosition, null);
           if (board.getPiece(endPosition) != null) {
             if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              if (!game.willBeInCheck(move, teamColor)) {
+              if (game.wontBeInCheck(move, teamColor)) {
                 moves.add(move);
               }
             }
           } else {
-            if (!game.willBeInCheck(move, teamColor)) {
+            if (game.wontBeInCheck(move, teamColor)) {
               moves.add(move);
             }
           }
@@ -156,12 +156,12 @@ public class KnightMovesCalculator {
           ChessMove move=new ChessMove(myPosition, endPosition, null);
           if (board.getPiece(endPosition) != null) {
             if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              if (!game.willBeInCheck(move, teamColor)) {
+              if (game.wontBeInCheck(move, teamColor)) {
                 moves.add(move);
               }
             }
           } else {
-            if (!game.willBeInCheck(move, teamColor)) {
+            if (game.wontBeInCheck(move, teamColor)) {
               moves.add(move);
             }
           }

@@ -116,12 +116,12 @@ public class BishopMovesCalculator {
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
       if (board.getPiece(endPosition) == null) {
-        if (!game.willBeInCheck(move, teamColor)) {
+        if (game.wontBeInCheck(move, teamColor)) {
           moves.add(move);
         }
       } else {
         if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
-          if (!game.willBeInCheck(move, teamColor)) {
+          if (game.wontBeInCheck(move, teamColor)) {
             moves.add(move);
           }
         }
@@ -142,12 +142,12 @@ public class BishopMovesCalculator {
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
       if (board.getPiece(endPosition) == null) {
-        if (!game.willBeInCheck(move, teamColor)) {
+        if (game.wontBeInCheck(move, teamColor)) {
           moves.add(move);
         }
       } else {
         if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
-          if (!game.willBeInCheck(move, teamColor)) {
+          if (game.wontBeInCheck(move, teamColor)) {
             moves.add(move);
           }
         }
@@ -168,12 +168,12 @@ public class BishopMovesCalculator {
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
       if (board.getPiece(endPosition) == null) {
-        if (!game.willBeInCheck(move, teamColor)) {
+        if (game.wontBeInCheck(move, teamColor)) {
           moves.add(move);
         }
       } else {
         if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
-          if (!game.willBeInCheck(move, teamColor)) {
+          if (game.wontBeInCheck(move, teamColor)) {
             moves.add(move);
           }
         }
@@ -194,12 +194,12 @@ public class BishopMovesCalculator {
       ChessPosition endPosition = new ChessPosition(currentRow, currentCol);
       ChessMove move = new ChessMove(myPosition, endPosition, null);
       if (board.getPiece(endPosition) == null) {
-        if (!game.willBeInCheck(move, teamColor)) {
+        if (game.wontBeInCheck(move, teamColor)) {
           moves.add(move);
         }
       } else {
         if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
-          if (!game.willBeInCheck(move, teamColor)) {
+          if (game.wontBeInCheck(move, teamColor)) {
             moves.add(move);
           }
         }
