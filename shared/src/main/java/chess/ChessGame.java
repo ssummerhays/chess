@@ -58,16 +58,23 @@ public class ChessGame {
         ChessPiece.PieceType type = piece.getPieceType();
         ChessGame.TeamColor color = piece.getTeamColor();
 
-        Collection<ChessMove> moves = new HashSet<>();
+        Collection<ChessMove> potentialMoves = new HashSet<>();
         switch (type) {
-            case KING -> moves=new KingMovesCalculator().pieceMovesCheck(this, chessBoard, startPosition, color);
-            case QUEEN -> moves=new QueenMovesCalculator().pieceMovesCheck(this, chessBoard, startPosition, color);
-            case ROOK -> moves=new RookMovesCalculator().pieceMovesCheck(this, chessBoard, startPosition, color);
-            case BISHOP -> moves=new BishopMovesCalculator().pieceMovesCheck(this, chessBoard, startPosition, color);
-            case KNIGHT -> moves=new KnightMovesCalculator().pieceMovesCheck(this, chessBoard, startPosition, color);
-            case PAWN -> moves=new PawnMovesCalculator().pieceMovesCheck(this, chessBoard, startPosition, color);
+            case KING -> potentialMoves=new KingMovesCalculator().pieceMoves(chessBoard, startPosition);
+            case QUEEN -> potentialMoves=new QueenMovesCalculator().pieceMoves(chessBoard, startPosition);
+            case ROOK -> potentialMoves=new RookMovesCalculator().pieceMoves(chessBoard, startPosition);
+            case BISHOP -> potentialMoves=new BishopMovesCalculator().pieceMoves(chessBoard, startPosition);
+            case KNIGHT -> potentialMoves=new KnightMovesCalculator().pieceMoves(chessBoard, startPosition);
+            case PAWN -> potentialMoves=new PawnMovesCalculator().pieceMoves(chessBoard, startPosition);
         }
-        return moves;
+
+        Collection<ChessMove> validMovesResult = new HashSet<>();
+        for (ChessMove move : potentialMoves) {
+            if (wontBeInCheck(move, color)) {
+                validMovesResult.add(move);
+            }
+        }
+        return validMovesResult;
     }
 
     /**
