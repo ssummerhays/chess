@@ -1,4 +1,4 @@
-# ♕ BYU CS 240 Chess
+[ChessSequenceDiagram (3).txt](https://github.com/user-attachments/files/17345644/ChessSequenceDiagram.3.txt)# ♕ BYU CS 240 Chess
 
 This project demonstrates mastery of proper software design, client/server architecture, networking using HTTP and WebSocket, database persistence, unit testing, serialization, and security.
 
@@ -50,3 +50,9 @@ java -jar client/target/client-jar-with-dependencies.jar
 
 ♕ 240 Chess Client: chess.ChessPiece@7852e922
 ```
+
+## Phase2 Chess Server Sequence Diagram
+
+![ChessSequenceDiagram](https://github.com/user-attachments/assets/3d91231d-e58c-4bbe-8067-d418534f8ed6)
+
+
