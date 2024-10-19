@@ -8,27 +8,27 @@ import model.UserData;
 import java.util.Collection;
 
 public interface DataAccess {
-  UserData getUser(String username);
+  UserData getUser(String username) throws DataAccessException;
 
-  void createUser(UserData userData);
+  void createUser(UserData userData) throws DataAccessException;
 
-  void deleteAllUsers();
+  void deleteAllUsers() throws DataAccessException;
 
-  AuthData getAuth(String authToken);
+  AuthData getAuth(String authToken) throws DataAccessException;
 
-  void createAuth(AuthData authData);
+  void createAuth(AuthData authData) throws DataAccessException;
 
-  void deleteAuth(AuthData authData);
+  void deleteAuth(AuthData authData) throws DataAccessException;
 
-  void deleteAllAuthTokens();
+  void deleteAllAuthTokens() throws DataAccessException;
 
-  Collection<GameData> getGames();
+  Collection<GameData> getGames() throws DataAccessException;
 
-  GameData getGame(int gameID);
+  GameData getGame(int gameID) throws DataAccessException;
 
-  int createGame(String gameName);
+  int createGame(String gameName)throws DataAccessException;
 
-  void joinGame(GameData gameData, String username, ChessGame.TeamColor teamColor);
+  void joinGame(GameData gameData, String username, ChessGame.TeamColor teamColor) throws DataAccessException;
 
-  void deleteAllGames();
+  void deleteAllGames() throws DataAccessException;
 }
