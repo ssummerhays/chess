@@ -12,15 +12,15 @@ public interface DataAccess {
 
   void createUser(UserData userData) throws DataAccessException;
 
-  void deleteAllUsers() throws DataAccessException;
+  void deleteAllUsers();
 
   AuthData getAuth(String authToken) throws DataAccessException;
 
   void createAuth(AuthData authData) throws DataAccessException;
 
-  void deleteAuth(AuthData authData) throws DataAccessException;
+  void deleteAuth(AuthData authData);
 
-  void deleteAllAuthTokens() throws DataAccessException;
+  void deleteAllAuthTokens();
 
   Collection<GameData> getGames() throws DataAccessException;
 
