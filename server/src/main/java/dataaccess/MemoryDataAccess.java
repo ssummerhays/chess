@@ -16,7 +16,7 @@ public class MemoryDataAccess implements DataAccess {
 
   public UserData getUser(String username) throws DataAccessException {
     for (UserData userData : userDataList) {
-      if (username == userData.username()) {
+      if (Objects.equals(username, userData.username())) {
         return userData;
       }
     }
@@ -25,7 +25,7 @@ public class MemoryDataAccess implements DataAccess {
 
   public void createUser(UserData userData) throws DataAccessException {
     for (UserData collectionUserData : userDataList) {
-      if (collectionUserData.username() == userData.username()) {
+      if (Objects.equals(collectionUserData.username(), userData.username())) {
         throw new DataAccessException("Error: already taken");
       }
     }
@@ -38,7 +38,7 @@ public class MemoryDataAccess implements DataAccess {
 
   public AuthData getAuth(String authToken) throws DataAccessException {
     for (AuthData authData : authDataList) {
-      if (authToken == authData.authToken()) {
+      if (Objects.equals(authToken, authData.authToken())) {
         return authData;
       }
     }
@@ -47,7 +47,7 @@ public class MemoryDataAccess implements DataAccess {
 
   public void createAuth(AuthData authData) throws DataAccessException {
     for (AuthData collectionAuthData : authDataList) {
-      if (collectionAuthData.authToken() == authData.authToken()) {
+      if (Objects.equals(collectionAuthData.authToken(), authData.authToken())) {
         throw new DataAccessException("Error: already taken");
       }
     }
@@ -76,7 +76,7 @@ public class MemoryDataAccess implements DataAccess {
 
   public  int createGame(String gameName) throws DataAccessException {
     for (GameData collectionGameData : gameDataList) {
-      if (collectionGameData.gameName() == gameName) {
+      if (Objects.equals(collectionGameData.gameName(), gameName)) {
         throw new DataAccessException("Error: bad request");
       }
     }
