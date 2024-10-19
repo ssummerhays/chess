@@ -21,4 +21,12 @@ public class MemoryDataAccess implements DataAccess {
     throw new DataAccessException("Error: bad request");
   }
 
+  public void createUser(UserData userData) {
+    userDataList.add(userData);
+  }
+
+  public void deleteAllUsers() {
+    userDataList.clear();
+  }
+
 }
