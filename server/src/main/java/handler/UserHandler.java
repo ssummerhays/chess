@@ -72,7 +72,6 @@ public class UserHandler {
       return "{}";
     } catch (DataAccessException e) {
       if (e.getMessage().contains("unauthorized")) {
-        e.printStackTrace();
         res.status(401);
       } else {
         res.status(500);
@@ -80,5 +79,12 @@ public class UserHandler {
       res.type("application/json");
       return "{\"message\": \"" + e.getMessage() + "\"}";
     }
+  }
+
+  public Object clear(Request req, Response res) {
+    service.clear();
+    res.type("application/json");
+    res.status(200);
+    return "{}";
   }
 }
