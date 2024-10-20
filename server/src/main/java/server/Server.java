@@ -1,10 +1,18 @@
 package server;
 
+import dataaccess.MemoryAuthDataAccess;
+import dataaccess.MemoryGameDataAccess;
+import dataaccess.MemoryUserDataAccess;
+import handler.GameHandler;
 import handler.UserHandler;
 import spark.*;
 
 public class Server {
-    private final UserHandler userHandler = new UserHandler();
+    MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
+    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
+    MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
+    private final UserHandler userHandler = new UserHandler(userDAO, authDAO, gameDAO);
+    private final GameHandler gameHandler = new GameHandler(authDAO, gameDAO);
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);
@@ -16,6 +24,7 @@ public class Server {
         Spark.post("/session", userHandler::login);
         Spark.delete("/session", userHandler::logout);
         Spark.delete("/db", userHandler::clear);
+        Spark.get("/game", gameHandler::listGames);
 
         //This line initializes the server and can be removed once you have a functioning endpoint 
         Spark.init();

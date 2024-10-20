@@ -9,27 +9,30 @@ import model.GameData;
 import service.requests.CreateGameRequest;
 import service.requests.JoinGameRequest;
 import service.requests.ListGamesRequest;
+import service.results.ListGamesResult;
 
 import java.util.Collection;
 
 public class GameService {
-  public Collection<GameData> listGames(ListGamesRequest listGamesRequest) throws DataAccessException {
+  public final MemoryAuthDataAccess authDAO;
+  public final MemoryGameDataAccess gameDAO;
+
+  public GameService(MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
+    this.authDAO = authDAO;
+    this.gameDAO = gameDAO;
+  }
+  public ListGamesResult listGames(ListGamesRequest listGamesRequest) throws DataAccessException {
     String authToken = listGamesRequest.authToken();
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
     AuthData authData = authDAO.getAuth(authToken);
 
-    MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
-    return gameDAO.getGames();
+    Collection<GameData> gameDataList = gameDAO.getGames();
+    return new ListGamesResult(gameDataList);
   }
 
   public int createGame(CreateGameRequest createGameRequest) throws DataAccessException {
     String authToken = createGameRequest.authToken();
     String gameName = createGameRequest.gameName();
-
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
     AuthData authData = authDAO.getAuth(authToken);
-
-    MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
     return gameDAO.createGame(gameName);
   }
 
@@ -38,10 +41,7 @@ public class GameService {
     ChessGame.TeamColor playerColor = joinGameRequest.playerColor();
     int gameID = joinGameRequest.gameID();
 
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
     AuthData authData = authDAO.getAuth(authToken);
-
-    MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
     GameData gameData = gameDAO.getGame(gameID);
 
     gameDAO.joinGame(gameData, authData.username(), playerColor);

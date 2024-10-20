@@ -2,6 +2,9 @@ package handler;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
+import dataaccess.MemoryAuthDataAccess;
+import dataaccess.MemoryGameDataAccess;
+import dataaccess.MemoryUserDataAccess;
 import service.UserService;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
@@ -12,7 +15,11 @@ import spark.Request;
 import spark.Response;
 
 public class UserHandler {
-  private final UserService service = new UserService();
+  UserService service;
+
+  public UserHandler(MemoryUserDataAccess userDAO, MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
+    this.service = new UserService(userDAO, authDAO, gameDAO);
+  }
   public Object register(Request req, Response res) {
     try {
       RegisterRequest registerRequest = new Gson().fromJson(req.body(), RegisterRequest.class);

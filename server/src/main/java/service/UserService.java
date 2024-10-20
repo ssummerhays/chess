@@ -16,9 +16,15 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
-  private final MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
-  private final MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
-  private final MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
+  public final MemoryUserDataAccess userDAO;
+  public final MemoryAuthDataAccess authDAO;
+  public final MemoryGameDataAccess gameDAO;
+
+  public UserService(MemoryUserDataAccess userDAO, MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
+    this.userDAO = userDAO;
+    this.authDAO = authDAO;
+    this.gameDAO = gameDAO;
+  }
   public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
     String username = registerRequest.username();
     String password = registerRequest.password();
