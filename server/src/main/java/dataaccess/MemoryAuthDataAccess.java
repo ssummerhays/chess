@@ -23,6 +23,7 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
         throw new DataAccessException("Error: already taken");
       }
     }
+    authDataList.add(authData);
   }
 
   public void deleteAuth(AuthData authData) {
