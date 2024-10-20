@@ -9,19 +9,20 @@ import model.UserData;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.LoginResult;
 import service.results.RegisterResult;
 
 import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
+  private final MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
+  private final MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
+  private final MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
   public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
     String username = registerRequest.username();
     String password = registerRequest.password();
     String email = registerRequest.email();
-
-    MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
-    MemoryAuthDataAccess authDao = new MemoryAuthDataAccess();
 
     if (userDAO.getUser(username) != null) {
       throw new DataAccessException("Error: already taken");
@@ -31,21 +32,18 @@ public class UserService {
 
     String authToken = UUID.randomUUID().toString();
     AuthData authData = new AuthData(authToken, username);
-    authDao.createAuth(authData);
+    authDAO.createAuth(authData);
 
     return new RegisterResult(username, authToken);
   }
 
-  public AuthData login(LoginRequest loginRequest) throws DataAccessException {
+  public LoginResult login(LoginRequest loginRequest) throws DataAccessException {
     String username = loginRequest.username();
     String password = loginRequest.password();
 
-    MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
-
     UserData userData = userDAO.getUser(username);
     if (userData == null) {
-      throw new DataAccessException("Error: bad request");
+      throw new DataAccessException("Error: user does not exist");
     }
     if (!Objects.equals(password, userData.password())) {
       throw new DataAccessException("Error: unauthorized");
@@ -55,21 +53,16 @@ public class UserService {
     AuthData authData = new AuthData(authToken, username);
     authDAO.createAuth(authData);
 
-    return authData;
+    return new LoginResult(username, authToken);
   }
 
   public void logout(LogoutRequest logoutRequest) throws DataAccessException {
     String authToken = logoutRequest.authToken();
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
     AuthData authData = authDAO.getAuth(authToken);
     authDAO.deleteAuth(authData);
   }
 
   public void clear() {
-    MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
-    MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
-
     userDAO.deleteAllUsers();
     authDAO.deleteAllAuthTokens();
     gameDAO.deleteAllGames();
