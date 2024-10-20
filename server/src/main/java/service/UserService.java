@@ -9,12 +9,13 @@ import model.UserData;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.RegisterResult;
 
 import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
-  public AuthData register(RegisterRequest registerRequest) throws DataAccessException {
+  public RegisterResult register(RegisterRequest registerRequest) throws DataAccessException {
     String username = registerRequest.username();
     String password = registerRequest.password();
     String email = registerRequest.email();
@@ -32,7 +33,7 @@ public class UserService {
     AuthData authData = new AuthData(authToken, username);
     authDao.createAuth(authData);
 
-    return authData;
+    return new RegisterResult(username, authToken);
   }
 
   public AuthData login(LoginRequest loginRequest) throws DataAccessException {
