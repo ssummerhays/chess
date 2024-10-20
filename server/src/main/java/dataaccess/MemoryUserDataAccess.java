@@ -11,13 +11,13 @@ import java.util.Objects;
 public class MemoryUserDataAccess implements UserDataAccess {
   Collection<UserData> userDataList;
 
-  public UserData getUser(String username) throws DataAccessException {
+  public UserData getUser(String username) {
     for (UserData userData : userDataList) {
       if (Objects.equals(username, userData.username())) {
         return userData;
       }
     }
-    throw new DataAccessException("Error: bad request");
+    return null;
   }
 
   public void createUser(UserData userData) throws DataAccessException {

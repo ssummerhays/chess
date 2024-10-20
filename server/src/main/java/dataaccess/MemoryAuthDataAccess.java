@@ -13,7 +13,7 @@ public class MemoryAuthDataAccess implements AuthDataAccess {
         return authData;
       }
     }
-    throw new DataAccessException("Error: bad request");
+    throw new DataAccessException("Error: unauthorized");
   }
 
   public void createAuth(AuthData authData) throws DataAccessException {
