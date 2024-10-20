@@ -3,10 +3,11 @@ package dataaccess;
 import model.AuthData;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class MemoryAuthDataAccess implements AuthDataAccess {
-  Collection<AuthData> authDataList;
+  Collection<AuthData> authDataList = new HashSet<>();
   public AuthData getAuth(String authToken) throws DataAccessException {
     for (AuthData authData : authDataList) {
       if (Objects.equals(authToken, authData.authToken())) {

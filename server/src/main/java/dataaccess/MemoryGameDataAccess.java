@@ -4,10 +4,11 @@ import chess.ChessGame;
 import model.GameData;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class MemoryGameDataAccess implements GameDataAccess {
-  Collection<GameData> gameDataList;
+  Collection<GameData> gameDataList = new HashSet<>();
   int nextGameID = 1;
 
   public Collection<GameData> getGames() {
