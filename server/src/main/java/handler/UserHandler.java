@@ -2,9 +2,9 @@ package handler;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
-import model.AuthData;
 import service.UserService;
 import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
 import service.results.LoginResult;
 import service.results.RegisterResult;
@@ -59,6 +59,26 @@ public class UserHandler {
       res.status(400);
       res.type("application/json");
       return "{\"message\": \"Error: bad request\"}";
+    }
+  }
+
+  public Object logout(Request req, Response res) {
+    try {
+      LogoutRequest logoutRequest = new LogoutRequest(req.headers("Authorization"));
+      service.logout(logoutRequest);
+
+      res.type("application/json");
+      res.status(200);
+      return "{}";
+    } catch (DataAccessException e) {
+      if (e.getMessage().contains("unauthorized")) {
+        e.printStackTrace();
+        res.status(401);
+      } else {
+        res.status(500);
+      }
+      res.type("application/json");
+      return "{\"message\": \"" + e.getMessage() + "\"}";
     }
   }
 }
