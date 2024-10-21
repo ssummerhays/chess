@@ -1,5 +1,6 @@
 package handler;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
@@ -7,11 +8,14 @@ import dataaccess.MemoryAuthDataAccess;
 import dataaccess.MemoryGameDataAccess;
 import service.GameService;
 import service.requests.CreateGameRequest;
+import service.requests.JoinGameRequest;
 import service.requests.ListGamesRequest;
 import service.results.CreateGameResult;
 import service.results.ListGamesResult;
 import spark.Request;
 import spark.Response;
+
+import java.util.Objects;
 
 public class GameHandler {
   GameService service;
@@ -52,9 +56,47 @@ public class GameHandler {
       res.status(200);
       return new Gson().toJson(createGameResult);
     } catch (DataAccessException e) {
-      e.printStackTrace();
       if (e.getMessage().contains("unauthorized")) {
         res.status(401);
+      } else {
+        res.status(500);
+      }
+      res.type("application/json");
+      return "{\"message\": \"" + e.getMessage() + "\"}";
+    }
+  }
+
+  public Object joinGame(Request req, Response res) {
+    try {
+      JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
+      int gameID = body.get("gameID").getAsInt();
+
+      String playerColorString = body.get("playerColor").getAsString();
+      ChessGame.TeamColor teamColor;
+      if (Objects.equals(playerColorString, "WHITE")) {
+        teamColor = ChessGame.TeamColor.WHITE;
+      } else if (Objects.equals(playerColorString, "BLACK")) {
+        teamColor = ChessGame.TeamColor.BLACK;
+      } else {
+        res.status(400);
+        res.type("application/json");
+        return "{\"message\": \"Error: bad request\"}";
+      }
+      String authToken = req.headers("Authorization");
+
+      JoinGameRequest joinGameRequest= new JoinGameRequest(authToken, teamColor, gameID);
+      service.joinGame(joinGameRequest);
+
+      res.type("application/json");
+      res.status(200);
+      return "{}";
+    } catch (DataAccessException e) {
+      if (e.getMessage().contains("bad request")) {
+        res.status(400);
+      } else if (e.getMessage().contains("unauthorized")) {
+        res.status(401);
+      } else if (e.getMessage().contains("already taken")) {
+        res.status(403);
       } else {
         res.status(500);
       }
