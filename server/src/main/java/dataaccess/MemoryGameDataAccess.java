@@ -49,14 +49,14 @@ public class MemoryGameDataAccess implements GameDataAccess {
       throw new DataAccessException("Error: bad request");
     }
     if (teamColor == ChessGame.TeamColor.WHITE) {
-      if (gameData.whiteUsername() != null) {
+      if (!Objects.equals(gameData.whiteUsername(), "")) {
         throw new DataAccessException("Error: already taken");
       }
       gameDataList.remove(gameData);
       gameData = new GameData(gameData.gameID(), username, gameData.blackUsername(), gameData.gameName(), gameData.game());
       gameDataList.add(gameData);
     } else {
-      if (gameData.blackUsername() != null) {
+      if (!Objects.equals(gameData.blackUsername(), "")) {
         throw new DataAccessException("Error: already taken");
       }
       gameDataList.remove(gameData);
