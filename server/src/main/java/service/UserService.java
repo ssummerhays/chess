@@ -49,10 +49,10 @@ public class UserService {
 
     UserData userData = userDAO.getUser(username);
     if (userData == null) {
-      throw new DataAccessException("Error: user does not exist");
+      throw new DataAccessException("Error: unauthorized");
     }
     if (!Objects.equals(password, userData.password())) {
-      throw new DataAccessException("Error: unauthorized");
+      throw new DataAccessException("Error: bad request");
     }
 
     String authToken = UUID.randomUUID().toString();
