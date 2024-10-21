@@ -2,11 +2,12 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
+import model.PrintedGameData;
 
 import java.util.Collection;
 
 public interface GameDataAccess {
-  Collection<GameData> getGames() throws DataAccessException;
+  Collection<PrintedGameData> getGames() throws DataAccessException;
 
   GameData getGame(int gameID) throws DataAccessException;
 

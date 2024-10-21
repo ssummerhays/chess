@@ -1,7 +1,7 @@
 package service.results;
 
-import model.GameData;
+import model.PrintedGameData;
 
 import java.util.Collection;
 
-public record ListGamesResult(Collection<GameData> gameDataList) {}
+public record ListGamesResult(Collection<PrintedGameData> gameDataList) {}

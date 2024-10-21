@@ -6,9 +6,11 @@ import dataaccess.MemoryAuthDataAccess;
 import dataaccess.MemoryGameDataAccess;
 import model.AuthData;
 import model.GameData;
+import model.PrintedGameData;
 import service.requests.CreateGameRequest;
 import service.requests.JoinGameRequest;
 import service.requests.ListGamesRequest;
+import service.results.CreateGameResult;
 import service.results.ListGamesResult;
 
 import java.util.Collection;
@@ -25,15 +27,16 @@ public class GameService {
     String authToken = listGamesRequest.authToken();
     AuthData authData = authDAO.getAuth(authToken);
 
-    Collection<GameData> gameDataList = gameDAO.getGames();
+    Collection<PrintedGameData> gameDataList = gameDAO.getGames();
     return new ListGamesResult(gameDataList);
   }
 
-  public int createGame(CreateGameRequest createGameRequest) throws DataAccessException {
+  public CreateGameResult createGame(CreateGameRequest createGameRequest) throws DataAccessException {
     String authToken = createGameRequest.authToken();
     String gameName = createGameRequest.gameName();
     AuthData authData = authDAO.getAuth(authToken);
-    return gameDAO.createGame(gameName);
+    int gameID = gameDAO.createGame(gameName);
+    return new CreateGameResult(gameID);
   }
 
   public void joinGame(JoinGameRequest joinGameRequest) throws DataAccessException{

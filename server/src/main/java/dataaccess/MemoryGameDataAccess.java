@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import model.GameData;
+import model.PrintedGameData;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -11,8 +12,13 @@ public class MemoryGameDataAccess implements GameDataAccess {
   Collection<GameData> gameDataList = new HashSet<>();
   int nextGameID = 1;
 
-  public Collection<GameData> getGames() {
-    return gameDataList;
+  public Collection<PrintedGameData> getGames() {
+    Collection<PrintedGameData> printedGamesData = new HashSet<>();
+    for (GameData gameData : gameDataList) {
+      PrintedGameData printedGameData = new PrintedGameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName());
+      printedGamesData.add(printedGameData);
+    }
+    return printedGamesData;
   }
 
   public GameData getGame(int gameID) throws DataAccessException {
