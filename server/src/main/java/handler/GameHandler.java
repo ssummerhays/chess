@@ -69,9 +69,18 @@ public class GameHandler {
   public Object joinGame(Request req, Response res) {
     try {
       JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
-      int gameID = body.get("gameID").getAsInt();
+      int gameID;
+      String playerColorString;
+      try {
+        playerColorString = body.get("playerColor").getAsString();
+        gameID = body.get("gameID").getAsInt();
 
-      String playerColorString = body.get("playerColor").getAsString();
+      } catch (Exception e) {
+        res.status(400);
+        res.type("application/json");
+        return "{\"message\": \"Error: bad request\"}";
+      }
+
       ChessGame.TeamColor teamColor;
       if (Objects.equals(playerColorString, "WHITE")) {
         teamColor = ChessGame.TeamColor.WHITE;
@@ -90,6 +99,7 @@ public class GameHandler {
       res.type("application/json");
       res.status(200);
       return "{}";
+
     } catch (DataAccessException e) {
       if (e.getMessage().contains("bad request")) {
         res.status(400);

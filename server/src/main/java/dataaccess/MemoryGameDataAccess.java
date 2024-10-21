@@ -39,7 +39,7 @@ public class MemoryGameDataAccess implements GameDataAccess {
 
     int gameID = nextGameID;
     nextGameID++;
-    GameData gameData = new GameData(gameID, "", "", gameName, new ChessGame());
+    GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
     gameDataList.add(gameData);
     return gameID;
   }
@@ -49,14 +49,14 @@ public class MemoryGameDataAccess implements GameDataAccess {
       throw new DataAccessException("Error: bad request");
     }
     if (teamColor == ChessGame.TeamColor.WHITE) {
-      if (!Objects.equals(gameData.whiteUsername(), "")) {
+      if (!Objects.equals(gameData.whiteUsername(), null)) {
         throw new DataAccessException("Error: already taken");
       }
       gameDataList.remove(gameData);
       gameData = new GameData(gameData.gameID(), username, gameData.blackUsername(), gameData.gameName(), gameData.game());
       gameDataList.add(gameData);
     } else {
-      if (!Objects.equals(gameData.blackUsername(), "")) {
+      if (!Objects.equals(gameData.blackUsername(), null)) {
         throw new DataAccessException("Error: already taken");
       }
       gameDataList.remove(gameData);

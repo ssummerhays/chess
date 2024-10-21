@@ -29,7 +29,9 @@ public class UserHandler {
       res.status(200);
       return new Gson().toJson(registerResult);
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("unauthorized")) {
+      if (e.getMessage().contains("bad request")) {
+        res.status(400);
+      } else if (e.getMessage().contains("unauthorized")) {
         res.status(401);
       } else if (e.getMessage().contains("already taken")) {
         res.status(403);
@@ -38,11 +40,6 @@ public class UserHandler {
       }
       res.type("application/json");
       return "{\"message\": \"" + e.getMessage() + "\"}";
-
-    } catch (Exception e) {
-      res.status(400);
-      res.type("application/json");
-      return "{\"message\": \"Error: bad request\"}";
     }
   }
 

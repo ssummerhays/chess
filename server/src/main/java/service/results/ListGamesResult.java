@@ -4,4 +4,4 @@ import model.PrintedGameData;
 
 import java.util.Collection;
 
-public record ListGamesResult(Collection<PrintedGameData> gameDataList) {}
+public record ListGamesResult(Collection<PrintedGameData> games) {}

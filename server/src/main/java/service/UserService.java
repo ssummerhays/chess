@@ -30,6 +30,10 @@ public class UserService {
     String password = registerRequest.password();
     String email = registerRequest.email();
 
+    if (username == null || password == null || email == null) {
+      throw new DataAccessException("Error: bad request");
+    }
+
     if (userDAO.getUser(username) != null) {
       throw new DataAccessException("Error: already taken");
     }
@@ -52,7 +56,7 @@ public class UserService {
       throw new DataAccessException("Error: unauthorized");
     }
     if (!Objects.equals(password, userData.password())) {
-      throw new DataAccessException("Error: bad request");
+      throw new DataAccessException("Error: unauthorized");
     }
 
     String authToken = UUID.randomUUID().toString();
