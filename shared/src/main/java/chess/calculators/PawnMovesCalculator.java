@@ -109,193 +109,104 @@ public class PawnMovesCalculator {
       }
     }
   }
+
   public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
     ChessPiece piece = board.getPiece(myPosition);
     ChessGame.TeamColor pieceColor = piece.getTeamColor();
-
     Collection<ChessMove> moves=new HashSet<>();
-
     int newRow = myPosition.getRow();
     int newCol = myPosition.getColumn();
-
-    if (pieceColor == ChessGame.TeamColor.WHITE) {
-      newRow += 1;
-
-      ChessPosition endPosition = new ChessPosition(newRow, newCol);
-      ChessMove move = new ChessMove(myPosition, endPosition, null);
-
-      boolean rightWall = newCol == 8;
-      boolean leftWall = newCol == 1;
-
-      if (board.getPiece(endPosition) != null) {
-        if (addBasicMoves(rightWall,leftWall, newRow, newCol, board, moves, myPosition, ChessGame.TeamColor.WHITE)) {
+    newRow = (pieceColor == ChessGame.TeamColor.WHITE)? newRow + 1 : newRow - 1;
+    ChessPosition endPosition=new ChessPosition(newRow, newCol);
+    ChessMove move=new ChessMove(myPosition, endPosition, null);
+    boolean rightWall=newCol == 8;
+    boolean leftWall=newCol == 1;
+    if (board.getPiece(endPosition) != null) {
+      if (pieceColor == ChessGame.TeamColor.WHITE) {
+        if (addBasicMoves(rightWall, leftWall, newRow, newCol, board, moves, myPosition, ChessGame.TeamColor.WHITE)) {
           return moves;
         }
-      }
-
-      if (myPosition.getRow() == 2) {
-        if (board.getPiece(endPosition) == null) {
-          moves.add(move);
-        }
-
-        newRow += 1;
-        endPosition = new ChessPosition(newRow, newCol);
-        move = new ChessMove(myPosition, endPosition, null);
-        if (board.getPiece(endPosition) == null) {
-          moves.add(move);
-        }
-
-        if (addBasicMoves(rightWall,leftWall, newRow, newCol, board, moves, myPosition, ChessGame.TeamColor.WHITE)) {
-          return moves;
-        }
-
-      } else if (myPosition.getRow() == 7) {
-        addPromotionMoves(newRow, newCol, board, myPosition, moves);
       } else {
-        if (board.getPiece(endPosition) == null) {
-          moves.add(move);
-        }
-        if (rightWall) {
-          ChessPosition left = new ChessPosition(newRow, newCol - 1);
-          if (board.getPiece(left) == null) {
-            return moves;
-          } else {
-            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
-              ChessMove leftMove = new ChessMove(myPosition, left, null);
-              moves.add(leftMove);
-            }
-          }
-        } else if (leftWall) {
-          ChessPosition right = new ChessPosition(newRow, newCol + 1);
-          if (board.getPiece(right) == null) {
-            return moves;
-          } else {
-            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
-              ChessMove rightMove = new ChessMove(myPosition, right, null);
-              moves.add(rightMove);
-            }
-          }
-        } else {
-          if (board.getPiece(endPosition) == null) {
-            moves.add(move);
-          }
-          ChessPosition right = new ChessPosition(newRow, newCol + 1);
-          ChessPosition left = new ChessPosition(newRow, newCol - 1);
-          if (board.getPiece(right) == null && board.getPiece(left) == null) {
-            return moves;
-          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
-            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
-              ChessMove rightMove = new ChessMove(myPosition, right, null);
-              moves.add(rightMove);
-            }
-            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
-              ChessMove leftMove = new ChessMove(myPosition, left, null);
-              moves.add(leftMove);
-            }
-          } else if (board.getPiece(right) != null) {
-            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.BLACK) {
-              ChessMove rightMove = new ChessMove(myPosition, right, null);
-              moves.add(rightMove);
-            }
-          } else if (board.getPiece(left) != null) {
-            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.BLACK) {
-              ChessMove leftMove = new ChessMove(myPosition, left, null);
-              moves.add(leftMove);
-            }
-          }
-        }
-      }
-    }
-
-//    BlackPawn
-    else {
-      newRow -= 1;
-
-      ChessPosition endPosition = new ChessPosition(newRow, newCol);
-      ChessMove move = new ChessMove(myPosition, endPosition, null);
-
-      boolean rightWall = newCol == 8;
-      boolean leftWall = newCol == 1;
-
-      if (board.getPiece(endPosition) != null) {
         if (addBasicMoves(rightWall, leftWall, newRow, newCol, board, moves, myPosition, ChessGame.TeamColor.BLACK)) {
           return moves;
         }
       }
-
-      if (myPosition.getRow() == 7) {
-        if (board.getPiece(endPosition) == null) {
-          moves.add(move);
+    }
+    if ((myPosition.getRow() == 2 && pieceColor == ChessGame.TeamColor.WHITE) || (myPosition.getRow() == 7 && pieceColor == ChessGame.TeamColor.BLACK)) {
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      }
+      newRow = (pieceColor == ChessGame.TeamColor.WHITE)? newRow + 1 : newRow - 1;
+      endPosition=new ChessPosition(newRow, newCol);
+      move=new ChessMove(myPosition, endPosition, null);
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      }
+      if (pieceColor == ChessGame.TeamColor.WHITE) {
+        if (addBasicMoves(rightWall, leftWall, newRow, newCol, board, moves, myPosition, ChessGame.TeamColor.WHITE)) {
+          return moves;
         }
-
-        newRow -= 1;
-        endPosition = new ChessPosition(newRow, newCol);
-        move = new ChessMove(myPosition, endPosition, null);
-        if (board.getPiece(endPosition) == null) {
-          moves.add(move);
-        }
+      } else {
         if (addBasicMoves(rightWall, leftWall, newRow, newCol, board, moves, myPosition, ChessGame.TeamColor.BLACK)) {
           return moves;
         }
-      } else if (myPosition.getRow() == 2) {
-        addPromotionMoves(newRow, newCol, board, myPosition, moves);
+      }
+    } else if ((myPosition.getRow() == 7 && pieceColor == ChessGame.TeamColor.WHITE) || (myPosition.getRow() == 2 && pieceColor == ChessGame.TeamColor.BLACK)) {
+      addPromotionMoves(newRow, newCol, board, myPosition, moves);
+    } else {
+      if (board.getPiece(endPosition) == null) {
+        moves.add(move);
+      }
+      if (rightWall) {
+        ChessPosition left=new ChessPosition(newRow, newCol - 1);
+        if (board.getPiece(left) == null) {
+          return moves;
+        } else {
+          if (board.getPiece(left).getTeamColor() != pieceColor) {
+            ChessMove leftMove=new ChessMove(myPosition, left, null);
+            moves.add(leftMove);
+          }
+        }
+      } else if (leftWall) {
+        ChessPosition right=new ChessPosition(newRow, newCol + 1);
+        if (board.getPiece(right) == null) {
+          return moves;
+        } else {
+          if (board.getPiece(right).getTeamColor() != pieceColor) {
+            ChessMove rightMove=new ChessMove(myPosition, right, null);
+            moves.add(rightMove);
+          }
+        }
       } else {
         if (board.getPiece(endPosition) == null) {
           moves.add(move);
         }
-        if (rightWall) {
-          ChessPosition left = new ChessPosition(newRow, newCol - 1);
-          if (board.getPiece(left) == null) {
-            return moves;
-          } else {
-            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
-              ChessMove leftMove = new ChessMove(myPosition, left, null);
-              moves.add(leftMove);
-            }
+        ChessPosition right=new ChessPosition(newRow, newCol + 1);
+        ChessPosition left=new ChessPosition(newRow, newCol - 1);
+        if (board.getPiece(right) == null && board.getPiece(left) == null) {
+          return moves;
+        } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
+          if (board.getPiece(right).getTeamColor() != pieceColor) {
+            ChessMove rightMove=new ChessMove(myPosition, right, null);
+            moves.add(rightMove);
           }
-        } else if (leftWall) {
-          ChessPosition right = new ChessPosition(newRow, newCol + 1);
-          if (board.getPiece(right) == null) {
-            return moves;
-          } else {
-            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
-              ChessMove rightMove = new ChessMove(myPosition, right, null);
-              moves.add(rightMove);
-            }
+          if (board.getPiece(left).getTeamColor() != pieceColor) {
+            ChessMove leftMove=new ChessMove(myPosition, left, null);
+            moves.add(leftMove);
           }
-        } else {
-          if (board.getPiece(endPosition) == null) {
-            moves.add(move);
+        } else if (board.getPiece(right) != null) {
+          if (board.getPiece(right).getTeamColor() != pieceColor) {
+            ChessMove rightMove=new ChessMove(myPosition, right, null);
+            moves.add(rightMove);
           }
-          ChessPosition right = new ChessPosition(newRow, newCol + 1);
-          ChessPosition left = new ChessPosition(newRow, newCol - 1);
-          if (board.getPiece(right) == null && board.getPiece(left) == null) {
-            return moves;
-          } else if (board.getPiece(right) != null && board.getPiece(left) != null) {
-            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
-              ChessMove rightMove = new ChessMove(myPosition, right, null);
-              moves.add(rightMove);
-            }
-            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
-              ChessMove leftMove = new ChessMove(myPosition, left, null);
-              moves.add(leftMove);
-            }
-          } else if (board.getPiece(right) != null) {
-            if (board.getPiece(right).getTeamColor() == ChessGame.TeamColor.WHITE) {
-              ChessMove rightMove = new ChessMove(myPosition, right, null);
-              moves.add(rightMove);
-            }
-          } else if (board.getPiece(left) != null) {
-            if (board.getPiece(left).getTeamColor() == ChessGame.TeamColor.WHITE) {
-              ChessMove leftMove = new ChessMove(myPosition, left, null);
-              moves.add(leftMove);
-            }
+        } else if (board.getPiece(left) != null) {
+          if (board.getPiece(left).getTeamColor() != pieceColor) {
+            ChessMove leftMove=new ChessMove(myPosition, left, null);
+            moves.add(leftMove);
           }
         }
       }
     }
-
     return moves;
   }
-
 }
