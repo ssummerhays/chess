@@ -15,7 +15,8 @@ public class MemoryGameDataAccess implements GameDataAccess {
   public Collection<PrintedGameData> getGames() {
     Collection<PrintedGameData> printedGamesData = new HashSet<>();
     for (GameData gameData : gameDataList) {
-      PrintedGameData printedGameData = new PrintedGameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName());
+      PrintedGameData printedGameData = new PrintedGameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
+              gameData.gameName());
       printedGamesData.add(printedGameData);
     }
     return printedGamesData;
