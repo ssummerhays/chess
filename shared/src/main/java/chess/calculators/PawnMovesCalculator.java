@@ -58,55 +58,38 @@ public class PawnMovesCalculator {
     return ret;
   }
 
+  public void addPromotions(ChessPosition myPosition, ChessPosition endPosition, Collection<ChessMove> moves) {
+    ChessMove move=new ChessMove(myPosition, endPosition, ChessPiece.PieceType.QUEEN);
+    moves.add(move);
+
+    move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.ROOK);
+    moves.add(move);
+
+    move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.BISHOP);
+    moves.add(move);
+
+    move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.KNIGHT);
+    moves.add(move);
+  }
+
   public void addPromotionMoves(int newRow, int newCol, ChessBoard board, ChessPosition myPosition, Collection<ChessMove> moves) {
     ChessPosition endPosition=new ChessPosition(newRow, newCol);
 
-    ChessMove move;
     if (board.getPiece(endPosition) == null) {
-      move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.QUEEN);
-      moves.add(move);
-
-      move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.ROOK);
-      moves.add(move);
-
-      move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.BISHOP);
-      moves.add(move);
-
-      move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.KNIGHT);
-      moves.add(move);
+      addPromotions(myPosition, endPosition, moves);
     }
 
     if (newCol < 8) {
       endPosition= new ChessPosition(newRow, newCol + 1);
       if (board.getPiece(endPosition) != null) {
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.QUEEN);
-        moves.add(move);
-
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.ROOK);
-        moves.add(move);
-
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.BISHOP);
-        moves.add(move);
-
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.KNIGHT);
-        moves.add(move);
+        addPromotions(myPosition, endPosition, moves);
       }
     }
 
     if (newCol > 1) {
       endPosition= new ChessPosition(newRow, newCol - 1);
       if (board.getPiece(endPosition) != null) {
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.QUEEN);
-        moves.add(move);
-
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.ROOK);
-        moves.add(move);
-
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.BISHOP);
-        moves.add(move);
-
-        move= new ChessMove(myPosition, endPosition, ChessPiece.PieceType.KNIGHT);
-        moves.add(move);
+        addPromotions(myPosition, endPosition, moves);
       }
     }
   }
@@ -172,18 +155,15 @@ public class PawnMovesCalculator {
         }
       } else if (leftWall) {
         ChessPosition right=new ChessPosition(newRow, newCol + 1);
-        if (board.getPiece(right) == null) {
-          return moves;
-        } else {
+        if (board.getPiece(right) == null) { return moves; }
+        else {
           if (board.getPiece(right).getTeamColor() != pieceColor) {
             ChessMove rightMove=new ChessMove(myPosition, right, null);
             moves.add(rightMove);
           }
         }
       } else {
-        if (board.getPiece(endPosition) == null) {
-          moves.add(move);
-        }
+        if (board.getPiece(endPosition) == null) { moves.add(move); }
         ChessPosition right=new ChessPosition(newRow, newCol + 1);
         ChessPosition left=new ChessPosition(newRow, newCol - 1);
         if (board.getPiece(right) == null && board.getPiece(left) == null) {
