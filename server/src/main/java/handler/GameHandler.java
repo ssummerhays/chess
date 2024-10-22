@@ -24,6 +24,20 @@ public class GameHandler {
     this.service = new GameService(authDAO, gameDAO);
   }
 
+  public String handleError(DataAccessException e, Response res) {
+    if (e.getMessage().contains("bad request")) {
+      res.status(400);
+    } else if (e.getMessage().contains("unauthorized")) {
+      res.status(401);
+    } else if (e.getMessage().contains("already taken")) {
+      res.status(403);
+    } else {
+      res.status(500);
+    }
+    res.type("application/json");
+    return "{\"message\": \"" + e.getMessage() + "\"}";
+  }
+
   public Object listGames(Request req, Response res) {
     try {
       String authToken = req.headers("Authorization");
@@ -34,13 +48,7 @@ public class GameHandler {
       res.status(200);
       return new Gson().toJson(listGamesResult);
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("unauthorized")) {
-        res.status(401);
-      } else {
-        res.status(500);
-      }
-      res.type("application/json");
-      return "{\"message\": \"" + e.getMessage() + "\"}";
+      return handleError(e, res);
     }
   }
 
@@ -56,13 +64,7 @@ public class GameHandler {
       res.status(200);
       return new Gson().toJson(createGameResult);
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("unauthorized")) {
-        res.status(401);
-      } else {
-        res.status(500);
-      }
-      res.type("application/json");
-      return "{\"message\": \"" + e.getMessage() + "\"}";
+      return handleError(e, res);
     }
   }
 
@@ -101,17 +103,7 @@ public class GameHandler {
       return "{}";
 
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("bad request")) {
-        res.status(400);
-      } else if (e.getMessage().contains("unauthorized")) {
-        res.status(401);
-      } else if (e.getMessage().contains("already taken")) {
-        res.status(403);
-      } else {
-        res.status(500);
-      }
-      res.type("application/json");
-      return "{\"message\": \"" + e.getMessage() + "\"}";
+      return handleError(e, res);
     }
   }
 }

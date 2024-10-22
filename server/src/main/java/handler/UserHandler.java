@@ -29,17 +29,8 @@ public class UserHandler {
       res.status(200);
       return new Gson().toJson(registerResult);
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("bad request")) {
-        res.status(400);
-      } else if (e.getMessage().contains("unauthorized")) {
-        res.status(401);
-      } else if (e.getMessage().contains("already taken")) {
-        res.status(403);
-      } else {
-        res.status(500);
-      }
-      res.type("application/json");
-      return "{\"message\": \"" + e.getMessage() + "\"}";
+      GameHandler handler = new GameHandler(service.authDAO, service.gameDAO);
+      return handler.handleError(e, res);
     }
   }
 
@@ -52,17 +43,8 @@ public class UserHandler {
       res.status(200);
       return new Gson().toJson(loginResult);
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("unauthorized")) {
-        res.status(401);
-      } else {
-        res.status(500);
-      }
-      res.type("application/json");
-      return "{\"message\": \"" + e.getMessage() + "\"}";
-    } catch (Exception e) {
-      res.status(400);
-      res.type("application/json");
-      return "{\"message\": \"Error: bad request\"}";
+      GameHandler handler = new GameHandler(service.authDAO, service.gameDAO);
+      return handler.handleError(e, res);
     }
   }
 
@@ -75,13 +57,8 @@ public class UserHandler {
       res.status(200);
       return "{}";
     } catch (DataAccessException e) {
-      if (e.getMessage().contains("unauthorized")) {
-        res.status(401);
-      } else {
-        res.status(500);
-      }
-      res.type("application/json");
-      return "{\"message\": \"" + e.getMessage() + "\"}";
+      GameHandler handler = new GameHandler(service.authDAO, service.gameDAO);
+      return handler.handleError(e, res);
     }
   }
 
