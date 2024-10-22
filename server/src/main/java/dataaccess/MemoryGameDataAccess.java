@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Objects;
 
 public class MemoryGameDataAccess implements GameDataAccess {
-  Collection<GameData> gameDataList = new HashSet<>();
+  public Collection<GameData> gameDataList = new HashSet<>();
   int nextGameID = 1;
 
   public Collection<PrintedGameData> getGames() {

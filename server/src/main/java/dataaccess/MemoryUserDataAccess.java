@@ -1,8 +1,5 @@
 package dataaccess;
 
-import chess.ChessGame;
-import model.AuthData;
-import model.GameData;
 import model.UserData;
 
 import java.util.Collection;
@@ -10,7 +7,7 @@ import java.util.HashSet;
 import java.util.Objects;
 
 public class MemoryUserDataAccess implements UserDataAccess {
-  Collection<UserData> userDataList = new HashSet<>();
+  public Collection<UserData> userDataList = new HashSet<>();
 
   public UserData getUser(String username) {
     for (UserData userData : userDataList) {
