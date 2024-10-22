@@ -166,16 +166,7 @@ public class ChessGame {
       return !board.hypotheticalIsInCheck(teamColor);
     }
 
-    /**
-     * Determines if the given team is in checkmate
-     *
-     * @param teamColor which team to check for checkmate
-     * @return True if the specified team is in checkmate
-     */
-    public boolean isInCheckmate(TeamColor teamColor) {
-        if (!isInCheck(teamColor)) {
-            return false;
-        }
+    public boolean noMoves(TeamColor teamColor) {
         Collection<ChessMove> allMoves = new HashSet<>();
 
         ChessPosition currentPosition;
@@ -191,8 +182,20 @@ public class ChessGame {
                 }
             }
         }
-
         return allMoves.isEmpty();
+    }
+
+    /**
+     * Determines if the given team is in checkmate
+     *
+     * @param teamColor which team to check for checkmate
+     * @return True if the specified team is in checkmate
+     */
+    public boolean isInCheckmate(TeamColor teamColor) {
+        if (!isInCheck(teamColor)) {
+            return false;
+        }
+        return noMoves(teamColor);
     }
 
     /**
@@ -206,23 +209,7 @@ public class ChessGame {
         if (isInCheck(teamColor)) {
             return false;
         }
-        Collection<ChessMove> allMoves = new HashSet<>();
-
-        ChessPosition currentPosition;
-        for (int r = 1; r <= 8; r++) {
-            for (int c = 1; c <= 8; c++) {
-                currentPosition = new ChessPosition(r, c);
-                ChessPiece currentPiece = chessBoard.getPiece(currentPosition);
-                if (currentPiece != null) {
-                    if (currentPiece.getTeamColor() == teamColor) {
-                        Collection<ChessMove> validMoveCollection = validMoves(currentPosition);
-                        allMoves.addAll(validMoveCollection);
-                    }
-                }
-            }
-        }
-
-        return allMoves.isEmpty();
+        return noMoves(teamColor);
     }
 
     /**
