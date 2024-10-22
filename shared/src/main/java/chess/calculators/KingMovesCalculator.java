@@ -19,12 +19,9 @@ public class KingMovesCalculator {
         if (r != currentRow || c != currentCol) {
           ChessPosition endPosition=new ChessPosition(r, c);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
-          if (board.getPiece(endPosition) == null) {
+          if (board.getPiece(endPosition) == null || board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
             moves.add(move);
           } else {
-            if (board.getPiece(endPosition).getTeamColor() != piece.getTeamColor()) {
-              moves.add(move);
-            }
             break;
           }
         }

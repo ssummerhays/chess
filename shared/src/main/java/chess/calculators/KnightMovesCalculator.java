@@ -28,21 +28,17 @@ public class KnightMovesCalculator {
         if (endColRight <= 8) {
           ChessPosition endPosition = new ChessPosition(endRowAbove, endColRight);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
-          if (board.getPiece(endPosition) != null) {
-            if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              moves.add(move);
-            }
-          } else {moves.add(move);}
+          if (board.getPiece(endPosition) == null || board.getPiece(endPosition).getTeamColor() != pieceColor) {
+            moves.add(move);
+          }
         }
 
         if (endColLeft > 0) {
           ChessPosition endPosition = new ChessPosition(endRowAbove, endColLeft);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
-          if (board.getPiece(endPosition) != null) {
-            if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              moves.add(move);
-            }
-          } else {moves.add(move);}
+          if (board.getPiece(endPosition) == null || board.getPiece(endPosition).getTeamColor() != pieceColor) {
+            moves.add(move);
+          }
         }
       }
 
@@ -51,21 +47,17 @@ public class KnightMovesCalculator {
         if (endColRight <= 8) {
           ChessPosition endPosition = new ChessPosition(endRowBelow, endColRight);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
-          if (board.getPiece(endPosition) != null) {
-            if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              moves.add(move);
-            }
-          } else {moves.add(move);}
+          if (board.getPiece(endPosition) == null || board.getPiece(endPosition).getTeamColor() != pieceColor) {
+            moves.add(move);
+          }
         }
 
         if (endColLeft > 0) {
           ChessPosition endPosition = new ChessPosition(endRowBelow, endColLeft);
           ChessMove move=new ChessMove(myPosition, endPosition, null);
-          if (board.getPiece(endPosition) != null) {
-            if (board.getPiece(endPosition).getTeamColor() != pieceColor){
-              moves.add(move);
-            }
-          } else {moves.add(move);}
+          if (board.getPiece(endPosition) == null || board.getPiece(endPosition).getTeamColor() != pieceColor) {
+            moves.add(move);
+          }
         }
       }
 

@@ -93,23 +93,19 @@ public class ChessGame {
             throw new InvalidMoveException();
         } else {
             if (validMoves(move.getStartPosition()).contains(move)) {
-                if (piece.getTeamColor() == turnColor) {
-                    if (wontBeInCheck(move, piece.getTeamColor())) {
-                        if (promotionType == null) {
-                            chessBoard.addPiece(endPosition, piece);
-                            chessBoard.addPiece(startPosition, null);
-                        } else {
-                            ChessPiece promotionPiece=new ChessPiece(piece.getTeamColor(), promotionType);
-                            chessBoard.addPiece(endPosition, promotionPiece);
-                            chessBoard.addPiece(startPosition, null);
-                        }
-                        if (piece.getTeamColor() == TeamColor.WHITE) {
-                            setTeamTurn(TeamColor.BLACK);
-                        } else {
-                            setTeamTurn(TeamColor.WHITE);
-                        }
+                if (piece.getTeamColor() == turnColor && wontBeInCheck(move, piece.getTeamColor())) {
+                    if (promotionType == null) {
+                        chessBoard.addPiece(endPosition, piece);
+                        chessBoard.addPiece(startPosition, null);
                     } else {
-                        throw new InvalidMoveException();
+                        ChessPiece promotionPiece=new ChessPiece(piece.getTeamColor(), promotionType);
+                        chessBoard.addPiece(endPosition, promotionPiece);
+                        chessBoard.addPiece(startPosition, null);
+                    }
+                    if (piece.getTeamColor() == TeamColor.WHITE) {
+                        setTeamTurn(TeamColor.BLACK);
+                    } else {
+                        setTeamTurn(TeamColor.WHITE);
                     }
 
                 } else {
