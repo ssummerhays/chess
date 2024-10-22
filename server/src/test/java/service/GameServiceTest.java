@@ -24,31 +24,31 @@ class GameServiceTest {
   private static GameService service;
   private static MemoryAuthDataAccess authDAO;
   private static MemoryGameDataAccess gameDAO;
-  private static final String loggedInUsername = "user1";
-  private static final String loggedOutUsername = "user2";
-  private static final String password = "correctPassword";
-  private static final String email = "user@example.com";
+  private static final String LOGGED_IN_USERNAME = "user1";
+  private static final String LOGGED_OUT_USERNAME = "user2";
+  private static final String PASSWORD = "correctPassword";
+  private static final String EMAIL = "user@example.com";
   private static AuthData user1Auth;
   private static GameData existingGame1 = new GameData(1, null, null, "game1", new ChessGame());
   private static GameData existingGame2 = new GameData(2, null, null, "game2", new ChessGame());
-  private static GameData fullGame = new GameData(3, loggedInUsername, loggedOutUsername, "fullGame", new ChessGame());
+  private static GameData fullGame = new GameData(3, LOGGED_IN_USERNAME, LOGGED_OUT_USERNAME, "fullGame", new ChessGame());
 
   @BeforeAll
   public static void init() {
     MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
     authDAO = new MemoryAuthDataAccess();
 
-    UserData loggedInUser = new UserData(loggedInUsername, password, email);
-    UserData loggedOutUser = new UserData(loggedOutUsername, password, email);
+    UserData loggedInUser = new UserData(LOGGED_IN_USERNAME, PASSWORD, EMAIL);
+    UserData loggedOutUser = new UserData(LOGGED_OUT_USERNAME, PASSWORD, EMAIL);
     userDAO.userDataList.add(loggedInUser);
     userDAO.userDataList.add(loggedOutUser);
 
-    user1Auth = new AuthData("auth1", loggedInUsername);
+    user1Auth = new AuthData("auth1", LOGGED_IN_USERNAME);
     authDAO.authDataList.add(user1Auth);
 
     existingGame1 = new GameData(1, null, null, "game1", new ChessGame());
     existingGame2 = new GameData(2, null, null, "game2", new ChessGame());
-    fullGame = new GameData(3, loggedInUsername, loggedOutUsername, "fullGame", new ChessGame());
+    fullGame = new GameData(3, LOGGED_IN_USERNAME, LOGGED_OUT_USERNAME, "fullGame", new ChessGame());
   }
 
   @BeforeEach
