@@ -59,7 +59,11 @@ public class MySqlUserDataAccess implements UserDataAccess {
         preparedStatement.executeUpdate();
       }
     } catch (SQLException e) {
-      throw new DataAccessException("Database Error");
+      if (e.getMessage().contains("Duplicate")) {
+        throw new DataAccessException("Error: already taken");
+      } else {
+        throw new DataAccessException("Error: bad request");
+      }
     }
 
   }

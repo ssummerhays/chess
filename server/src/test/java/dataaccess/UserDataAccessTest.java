@@ -70,11 +70,37 @@ class UserDataAccessTest {
   @Test
   @DisplayName("Positive createUser MySqlDAO test")
   void createUserPositiveSql() {
+    try (var conn = DatabaseManager.getConnection()) {
+      try (var preparedStatement = conn.prepareStatement("DELETE FROM userData WHERE username = 'createdUser'")) {
+        preparedStatement.executeUpdate();
+      }
+
+      UserData userData=new UserData("createdUser", "createdPassword", "createdEmail");
+      mySqlUserDAO.createUser(userData);
+
+      String statement = "SELECT username, password, email FROM userData WHERE username='createdUser'";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        String username = rs.getString(1);
+        String hashed = rs.getString(2);
+        String email = rs.getString(3);
+
+        assertEquals("createdUser", username);
+        assertTrue(BCrypt.checkpw("createdPassword", hashed));
+        assertEquals("createdEmail", email);
+      }
+    } catch (Throwable e) {
+      fail();
+    }
   }
 
   @Test
   @DisplayName("Negative createUser MySqlDAO test")
   void createUserNegativeSql() {
+    UserData userData = new UserData("testUsername1", "testPassword1", "testEmail1");
+    Exception e = assertThrows(DataAccessException.class, () -> mySqlUserDAO.createUser(userData));
+    assertTrue(e.getMessage().contains("already taken"));
   }
 
   @Test
