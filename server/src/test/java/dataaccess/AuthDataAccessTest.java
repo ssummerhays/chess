@@ -141,6 +141,18 @@ class AuthDataAccessTest {
   @Order(7)
   @DisplayName("Positive deleteAllAuthTokens MySqlDAO test")
   public void posDeleteAllAuthTest() {
+    try (var conn = DatabaseManager.getConnection()) {
+      mySqlAuthDAO.deleteAllAuthTokens();
+      String statement = "SELECT COUNT(*) FROM userData";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        int count = rs.getInt(1);
 
+        assertEquals(0, count);
+      }
+    } catch (Throwable e) {
+      fail();
+    }
   }
 }
