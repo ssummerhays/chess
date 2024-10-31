@@ -2,6 +2,7 @@ package dataaccess;
 
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 
@@ -44,7 +45,16 @@ public class MySqlAuthDataAccess implements AuthDataAccess {
   }
 
   public void createAuth(AuthData authData) throws DataAccessException {
-
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = "INSERT INTO authData (authData, username) VALUES (?, ?)";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.setString(1, authData.authToken());
+        preparedStatement.setString(2, authData.username());
+        preparedStatement.executeUpdate();
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Error: bad request");
+    }
   }
 
   public void deleteAuth(AuthData authData) {
