@@ -9,5 +9,5 @@ public interface AuthDataAccess {
 
   void deleteAuth(AuthData authData);
 
-  void deleteAllAuthTokens();
+  void deleteAllAuthTokens() throws DataAccessException;
 }

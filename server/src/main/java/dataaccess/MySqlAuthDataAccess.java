@@ -61,7 +61,14 @@ public class MySqlAuthDataAccess implements AuthDataAccess {
 
   }
 
-  public void deleteAllAuthTokens() {
-
+  public void deleteAllAuthTokens() throws DataAccessException {
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = "TRUNCATE userData";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.executeUpdate();
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Database Error");
+    }
   }
 }
