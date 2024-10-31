@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 import model.PrintedGameData;
+import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
@@ -41,7 +42,22 @@ public class MySqlGameDataAccess implements GameDataAccess {
   }
 
   public GameData getGame(int gameID) throws DataAccessException {
-    return null;
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJSON FROM gameData WHERE gameID=?";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.setInt(1, gameID);
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        String whiteUsername = rs.getString(2);
+        String blackUserName = rs.getString(3);
+        String gameName = rs.getString(4);
+        String gameJSON = rs.getString(5);
+        ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+        return new GameData(gameID, whiteUsername, blackUserName, gameName, game);
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Error: unauthorized");
+    }
   }
 
   public int createGame(String gameName) throws DataAccessException {
