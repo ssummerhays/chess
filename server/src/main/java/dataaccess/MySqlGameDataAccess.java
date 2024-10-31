@@ -9,6 +9,7 @@ import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.Collection;
+import java.util.HashSet;
 
 public class MySqlGameDataAccess implements GameDataAccess {
   int gameID = 1;
@@ -38,7 +39,24 @@ public class MySqlGameDataAccess implements GameDataAccess {
     }
   }
   public Collection<PrintedGameData> getGames() throws DataAccessException {
-    return null;
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = "SELECT * FROM gameData";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        Collection<PrintedGameData> printedGameDataList = new HashSet<>();
+        var rs = preparedStatement.executeQuery();
+        while (rs.next()) {
+          int gameID = rs.getInt(1);
+          String whiteUsername = rs.getString(2);
+          String blackUserName = rs.getString(3);
+          String gameName = rs.getString(4);
+          PrintedGameData printedGameData = new PrintedGameData(gameID, whiteUsername, blackUserName, gameName);
+          printedGameDataList.add(printedGameData);
+        }
+        return printedGameDataList;
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Error: unauthorized");
+    }
   }
 
   public GameData getGame(int gameID) throws DataAccessException {
