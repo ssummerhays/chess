@@ -7,5 +7,5 @@ public interface UserDataAccess {
 
   void createUser(UserData userData) throws DataAccessException;
 
-  void deleteAllUsers();
+  void deleteAllUsers() throws DataAccessException;
 }
