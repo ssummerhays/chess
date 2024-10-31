@@ -21,8 +21,8 @@ public class MySqlGameDataAccess implements GameDataAccess {
               """
             CREATE TABLE IF NOT EXISTS  gameData (
               `gameID` int NOT NULL,
-              `whiteUsername` varchar(256),
-              `blackUsername` varchar(256),
+              `whiteUsername` varchar(256) UNIQUE,
+              `blackUsername` varchar(256) UNIQUE,
               `gameName` varchar(256) NOT NULL UNIQUE,
               `gameJSON` varchar(256) NOT NULL,
               PRIMARY KEY (`id`)
@@ -102,7 +102,21 @@ public class MySqlGameDataAccess implements GameDataAccess {
   }
   
   public void joinGame(GameData gameData, String username, ChessGame.TeamColor teamColor) throws DataAccessException {
-
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = teamColor == ChessGame.TeamColor.WHITE?
+              "UPDATE gameData SET whiteUsername = ? WHERE gameID = ?" : "UPDATE gameData SET blackUsername = ? WHERE gameID = ?";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.setString(1, username);
+        preparedStatement.setInt(2, gameData.gameID());
+        preparedStatement.executeUpdate();
+      }
+    } catch (SQLException e) {
+      if (e.getMessage().contains("Duplicate")) {
+        throw new DataAccessException("Error: already taken");
+      } else {
+        throw new DataAccessException("Error: bad request");
+      }
+    }
   }
 
   public void deleteAllGames() throws DataAccessException {
