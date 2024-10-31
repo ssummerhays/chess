@@ -120,6 +120,13 @@ public class MySqlGameDataAccess implements GameDataAccess {
   }
 
   public void deleteAllGames() throws DataAccessException {
-
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = "TRUNCATE gameData";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.executeUpdate();
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Database Error");
+    }
   }
 }
