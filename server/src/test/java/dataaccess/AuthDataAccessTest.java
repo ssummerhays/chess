@@ -111,13 +111,29 @@ class AuthDataAccessTest {
   @Order(5)
   @DisplayName("Positive deleteAuth MySqlDAO test")
   public void posDeleteAuthTest() {
+    try (var conn = DatabaseManager.getConnection()) {
+      AuthData authData = new AuthData("testAuth1", "testUsername1");
+      int countAfter;
+      int countBefore;
 
-  }
+      String statement1 = "SELECT COUNT(*) FROM authData";
+      try (var preparedStatement = conn.prepareStatement(statement1)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        countBefore = rs.getInt(1);
+      }
 
-  @Test
-  @Order(6)
-  @DisplayName("Negative deleteAuth MySqlDAO test")
-  public void negDeleteAuthTest() {
+      mySqlAuthDAO.deleteAuth(authData);
+      String statement2 = "SELECT COUNT(*) FROM authData";
+      try (var preparedStatement = conn.prepareStatement(statement2)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        countAfter = rs.getInt(1);
+      }
+      assertEquals(countBefore - 1, countAfter);
+    } catch (Throwable e) {
+      fail();
+    }
 
   }
 
