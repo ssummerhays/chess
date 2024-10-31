@@ -72,7 +72,7 @@ public class MySqlUserDataAccess implements UserDataAccess {
     try (var conn = DatabaseManager.getConnection()) {
       String statement = "TRUNCATE userData";
       try (var preparedStatement = conn.prepareStatement(statement)) {
-        preparedStatement.executeQuery();
+        preparedStatement.executeUpdate();
       }
     } catch (SQLException e) {
       throw new DataAccessException("Database Error");

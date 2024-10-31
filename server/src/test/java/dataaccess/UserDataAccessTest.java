@@ -9,6 +9,7 @@ import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class UserDataAccessTest {
   static MySqlUserDataAccess mySqlUserDAO;
 
@@ -45,6 +46,7 @@ class UserDataAccessTest {
   }
 
   @Test
+  @Order(1)
   @DisplayName("Positive getUser MySqlDAO test")
   void getUserPositiveSql() {
     try {
@@ -61,6 +63,7 @@ class UserDataAccessTest {
   }
 
   @Test
+  @Order(2)
   @DisplayName("Negative getUser MySqlDAO test")
   void getUserNegativeSql() {
     Exception exception=assertThrows(DataAccessException.class, () -> mySqlUserDAO.getUser(""));
@@ -68,6 +71,7 @@ class UserDataAccessTest {
   }
 
   @Test
+  @Order(3)
   @DisplayName("Positive createUser MySqlDAO test")
   void createUserPositiveSql() {
     try (var conn = DatabaseManager.getConnection()) {
@@ -96,6 +100,7 @@ class UserDataAccessTest {
   }
 
   @Test
+  @Order(4)
   @DisplayName("Negative createUser MySqlDAO test")
   void createUserNegativeSql() {
     UserData userData = new UserData("testUsername1", "testPassword1", "testEmail1");
@@ -104,7 +109,21 @@ class UserDataAccessTest {
   }
 
   @Test
+  @Order(5)
   @DisplayName("Positive deleteAllUsers MySqlDAO test")
   void deleteAllUsersPositiveSql() {
+    try (var conn = DatabaseManager.getConnection()) {
+      mySqlUserDAO.deleteAllUsers();
+      String statement = "SELECT COUNT(*) FROM userData";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        int count = rs.getInt(1);
+
+        assertEquals(0, count);
+      }
+    } catch (Throwable e) {
+      fail();
+    }
   }
 }
