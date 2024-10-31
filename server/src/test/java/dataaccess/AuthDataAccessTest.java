@@ -1,10 +1,12 @@
 package dataaccess;
 
 import model.AuthData;
+import model.UserData;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 
@@ -73,14 +75,36 @@ class AuthDataAccessTest {
   @Order(3)
   @DisplayName("Positive createAuth MySqlDAO test")
   public void posCreateAuthTest() {
+    try (var conn = DatabaseManager.getConnection()) {
+      try (var preparedStatement = conn.prepareStatement("DELETE FROM authData WHERE authToken = 'createdAuth'")) {
+        preparedStatement.executeUpdate();
+      }
 
+      AuthData authData=new AuthData("createdAuth", "createdUser");
+      mySqlAuthDAO.createAuth(authData);
+
+      String statement = "SELECT authToken, username FROM authData WHERE authToken='createdAuth'";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        String authToken = rs.getString(1);
+        String username = rs.getString(2);
+
+        assertEquals("createdUser", username);
+        assertEquals("createdAuth", authToken);
+      }
+    } catch (Throwable e) {
+      fail();
+    }
   }
 
   @Test
   @Order(4)
   @DisplayName("Negative createAuth MySqlDAO test")
   public void negCreateAuthTest() {
-
+    AuthData authData = new AuthData(null, "nullAuthToken");
+    Exception e = assertThrows(DataAccessException.class, () -> mySqlAuthDAO.createAuth(authData));
+    assertTrue(e.getMessage().contains("bad request"));
   }
 
   @Test
