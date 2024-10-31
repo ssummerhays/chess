@@ -20,8 +20,8 @@ import java.util.Objects;
 public class GameHandler {
   GameService service;
 
-  public GameHandler(MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
-    this.service = new GameService(authDAO, gameDAO);
+  public GameHandler(GameService gameService) {
+    this.service = gameService;
   }
 
   public String handleError(DataAccessException e, Response res) {

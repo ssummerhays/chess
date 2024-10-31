@@ -1,9 +1,6 @@
 package service;
 
-import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDataAccess;
-import dataaccess.MemoryGameDataAccess;
-import dataaccess.MemoryUserDataAccess;
+import dataaccess.*;
 import model.AuthData;
 import model.UserData;
 import service.requests.LoginRequest;
@@ -16,11 +13,11 @@ import java.util.Objects;
 import java.util.UUID;
 
 public class UserService {
-  public final MemoryUserDataAccess userDAO;
-  public final MemoryAuthDataAccess authDAO;
-  public final MemoryGameDataAccess gameDAO;
+  public final UserDataAccess userDAO;
+  public final AuthDataAccess authDAO;
+  public final GameDataAccess gameDAO;
 
-  public UserService(MemoryUserDataAccess userDAO, MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
+  public UserService(UserDataAccess userDAO, AuthDataAccess authDAO, GameDataAccess gameDAO) {
     this.userDAO = userDAO;
     this.authDAO = authDAO;
     this.gameDAO = gameDAO;
@@ -72,7 +69,7 @@ public class UserService {
     authDAO.deleteAuth(authData);
   }
 
-  public void clear() {
+  public void clear() throws DataAccessException {
     userDAO.deleteAllUsers();
     authDAO.deleteAllAuthTokens();
     gameDAO.deleteAllGames();

@@ -5,6 +5,7 @@ import dataaccess.DataAccessException;
 import dataaccess.MemoryAuthDataAccess;
 import dataaccess.MemoryGameDataAccess;
 import dataaccess.MemoryUserDataAccess;
+import service.GameService;
 import service.UserService;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
@@ -17,8 +18,8 @@ import spark.Response;
 public class UserHandler {
   UserService service;
 
-  public UserHandler(MemoryUserDataAccess userDAO, MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
-    this.service = new UserService(userDAO, authDAO, gameDAO);
+  public UserHandler(UserService userService) {
+    this.service = userService;
   }
   public Object register(Request req, Response res) {
     try {
@@ -29,7 +30,8 @@ public class UserHandler {
       res.status(200);
       return new Gson().toJson(registerResult);
     } catch (DataAccessException e) {
-      GameHandler handler = new GameHandler(service.authDAO, service.gameDAO);
+      GameService gameService = new GameService(service.authDAO, service.gameDAO);
+      GameHandler handler = new GameHandler(gameService);
       return handler.handleError(e, res);
     }
   }
@@ -43,7 +45,8 @@ public class UserHandler {
       res.status(200);
       return new Gson().toJson(loginResult);
     } catch (DataAccessException e) {
-      GameHandler handler = new GameHandler(service.authDAO, service.gameDAO);
+      GameService gameService = new GameService(service.authDAO, service.gameDAO);
+      GameHandler handler = new GameHandler(gameService);
       return handler.handleError(e, res);
     }
   }
@@ -57,15 +60,22 @@ public class UserHandler {
       res.status(200);
       return "{}";
     } catch (DataAccessException e) {
-      GameHandler handler = new GameHandler(service.authDAO, service.gameDAO);
+      GameService gameService = new GameService(service.authDAO, service.gameDAO);
+      GameHandler handler = new GameHandler(gameService);
       return handler.handleError(e, res);
     }
   }
 
   public Object clear(Request req, Response res) {
-    service.clear();
-    res.type("application/json");
-    res.status(200);
-    return "{}";
+    try {
+      service.clear();
+      res.type("application/json");
+      res.status(200);
+      return "{}";
+    } catch (DataAccessException e) {
+      GameService gameService = new GameService(service.authDAO, service.gameDAO);
+      GameHandler handler = new GameHandler(gameService);
+      return handler.handleError(e, res);
+    }
   }
 }

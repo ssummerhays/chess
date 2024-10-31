@@ -147,7 +147,7 @@ class UserServiceTest {
     assertFalse(gameDAO.gameDataList.isEmpty());
     assertFalse(authDAO.authDataList.isEmpty());
 
-    service.clear();
+    assertDoesNotThrow(() -> service.clear());
 
     assertTrue(userDAO.userDataList.isEmpty());
     assertTrue(gameDAO.gameDataList.isEmpty());

@@ -1,18 +1,40 @@
 package server;
 
-import dataaccess.MemoryAuthDataAccess;
-import dataaccess.MemoryGameDataAccess;
-import dataaccess.MemoryUserDataAccess;
+import dataaccess.*;
 import handler.GameHandler;
 import handler.UserHandler;
+import service.GameService;
+import service.UserService;
 import spark.*;
 
 public class Server {
-    MemoryUserDataAccess userDAO = new MemoryUserDataAccess();
-    MemoryAuthDataAccess authDAO = new MemoryAuthDataAccess();
-    MemoryGameDataAccess gameDAO = new MemoryGameDataAccess();
-    private final UserHandler userHandler = new UserHandler(userDAO, authDAO, gameDAO);
-    private final GameHandler gameHandler = new GameHandler(authDAO, gameDAO);
+    UserService userService;
+    GameService gameService;
+    UserHandler userHandler;
+    GameHandler gameHandler;
+
+    public Server(UserService userService, GameService gameService) {
+        this.userService = userService;
+        this.gameService = gameService;
+        this.userHandler = new UserHandler(userService);
+        this.gameHandler = new GameHandler(gameService);
+    }
+
+    public Server() {
+        try {
+            UserDataAccess userDataAccess=new MySqlUserDataAccess();
+            AuthDataAccess authDataAccess=new MySqlAuthDataAccess();
+            GameDataAccess gameDataAccess=new MySqlGameDataAccess();
+
+            this.userService=new UserService(userDataAccess, authDataAccess, gameDataAccess);
+            this.gameService=new GameService(authDataAccess, gameDataAccess);
+
+            this.userHandler=new UserHandler(userService);
+            this.gameHandler=new GameHandler(gameService);
+        } catch (Throwable e) {
+
+        }
+    }
 
     public int run(int desiredPort) {
         Spark.port(desiredPort);

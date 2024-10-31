@@ -1,9 +1,7 @@
 package service;
 
 import chess.ChessGame;
-import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDataAccess;
-import dataaccess.MemoryGameDataAccess;
+import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.PrintedGameData;
@@ -16,10 +14,10 @@ import service.results.ListGamesResult;
 import java.util.Collection;
 
 public class GameService {
-  public final MemoryAuthDataAccess authDAO;
-  public final MemoryGameDataAccess gameDAO;
+  public final AuthDataAccess authDAO;
+  public final GameDataAccess gameDAO;
 
-  public GameService(MemoryAuthDataAccess authDAO, MemoryGameDataAccess gameDAO) {
+  public GameService(AuthDataAccess authDAO, GameDataAccess gameDAO) {
     this.authDAO = authDAO;
     this.gameDAO = gameDAO;
   }
