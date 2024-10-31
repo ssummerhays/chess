@@ -7,7 +7,7 @@ public interface AuthDataAccess {
 
   void createAuth(AuthData authData) throws DataAccessException;
 
-  void deleteAuth(AuthData authData);
+  void deleteAuth(AuthData authData) throws DataAccessException;
 
   void deleteAllAuthTokens() throws DataAccessException;
 }

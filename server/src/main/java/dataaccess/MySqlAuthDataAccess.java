@@ -46,7 +46,7 @@ public class MySqlAuthDataAccess implements AuthDataAccess {
 
   public void createAuth(AuthData authData) throws DataAccessException {
     try (var conn = DatabaseManager.getConnection()) {
-      String statement = "INSERT INTO authData (authData, username) VALUES (?, ?)";
+      String statement = "INSERT INTO authData (authToken, username) VALUES (?, ?)";
       try (var preparedStatement = conn.prepareStatement(statement)) {
         preparedStatement.setString(1, authData.authToken());
         preparedStatement.setString(2, authData.username());
@@ -57,7 +57,16 @@ public class MySqlAuthDataAccess implements AuthDataAccess {
     }
   }
 
-  public void deleteAuth(AuthData authData) {
+  public void deleteAuth(AuthData authData) throws DataAccessException {
+    try (var conn = DatabaseManager.getConnection()) {
+      String statement = "DELETE FROM authData WHERE authToken=?";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.setString(1, authData.authToken());
+        preparedStatement.executeUpdate();
+      }
+    } catch (SQLException e) {
+      throw new DataAccessException("Error: bad request");
+    }
 
   }
 
