@@ -2,6 +2,7 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import model.AuthData;
 import model.GameData;
 import model.PrintedGameData;
 import org.junit.jupiter.api.BeforeAll;
@@ -81,14 +82,23 @@ class GameDataAccessTest {
   @Order(3)
   @DisplayName("Positive getGame test")
   public void posGetGameTest() {
+    try {
+      GameData actualGameData1 = mySqlGameDAO.getGame(1);
+      GameData actualGameData2 = mySqlGameDAO.getGame(2);
 
+      assertEquals(gameData1, actualGameData1);
+      assertEquals(gameData2, actualGameData2);
+    } catch (DataAccessException e) {
+      fail();
+    }
   }
 
   @Test
   @Order(4)
   @DisplayName("Negative getGame test")
   public void negGetGameTest() {
-
+    Exception e = assertThrows(DataAccessException.class, () -> mySqlGameDAO.getGame(0));
+    assertTrue(e.getMessage().contains("unauthorized"));
   }
 
   @Test

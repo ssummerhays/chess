@@ -4,6 +4,7 @@ import chess.calculators.*;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 /**
  * For a class that can manage a chess game, making moves on a board
@@ -36,6 +37,19 @@ public class ChessGame {
      */
     public void setTeamTurn(TeamColor team) {
         turnColor = team;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ChessGame chessGame=(ChessGame) o;
+        return Objects.equals(chessBoard, chessGame.chessBoard) && turnColor == chessGame.turnColor;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(chessBoard, turnColor);
     }
 
     /**
