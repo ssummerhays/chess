@@ -38,7 +38,9 @@ public class MySqlUserDataAccess implements UserDataAccess {
       try (var preparedStatement = conn.prepareStatement(statement)) {
         preparedStatement.setString(1, username);
         var rs = preparedStatement.executeQuery();
-        rs.next();
+        if (!rs.next()) {
+          return null;
+        }
         String hashed = rs.getString(2);
         String email = rs.getString(3);
         return new UserData(username, hashed, email);

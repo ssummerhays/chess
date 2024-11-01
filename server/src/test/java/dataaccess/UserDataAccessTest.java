@@ -65,9 +65,8 @@ class UserDataAccessTest {
   @Test
   @Order(2)
   @DisplayName("Negative getUser MySqlDAO test")
-  void getUserNegativeSql() {
-    Exception exception=assertThrows(DataAccessException.class, () -> mySqlUserDAO.getUser(""));
-    assertTrue(exception.getMessage().contains("unauthorized"));
+  void getUserNegativeSql() throws DataAccessException {
+    assertNull(mySqlUserDAO.getUser(""));
   }
 
   @Test

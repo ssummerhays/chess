@@ -3,6 +3,7 @@ package service;
 import dataaccess.*;
 import model.AuthData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
@@ -53,7 +54,9 @@ public class UserService {
       throw new DataAccessException("Error: unauthorized");
     }
     if (!Objects.equals(password, userData.password())) {
-      throw new DataAccessException("Error: unauthorized");
+      if (!BCrypt.checkpw(password, userData.password())) {
+        throw new DataAccessException("Error: unauthorized");
+      }
     }
 
     String authToken = UUID.randomUUID().toString();
