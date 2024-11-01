@@ -20,12 +20,12 @@ public class MySqlGameDataAccess implements GameDataAccess {
       String[] createStatements={
               """
             CREATE TABLE IF NOT EXISTS  gameData (
-              `gameID` int NOT NULL,
+              `gameID` int NOT NULL UNIQUE,
               `whiteUsername` varchar(256) UNIQUE,
               `blackUsername` varchar(256) UNIQUE,
               `gameName` varchar(256) NOT NULL UNIQUE,
-              `gameJSON` varchar(256) NOT NULL,
-              PRIMARY KEY (`id`)
+              `gameJSON` varchar(2048) NOT NULL,
+              PRIMARY KEY (`gameID`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
       };
