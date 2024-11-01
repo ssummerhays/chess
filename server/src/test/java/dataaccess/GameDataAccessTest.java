@@ -26,6 +26,7 @@ class GameDataAccessTest {
   public static void init() {
     try {
       mySqlGameDAO = new MySqlGameDataAccess();
+      mySqlGameDAO.deleteAllGames();
       try (var conn=DatabaseManager.getConnection()) {
 
         String gameJSON1 = new Gson().toJson(game1);
