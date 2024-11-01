@@ -23,42 +23,38 @@ class GameDataAccessTest {
   PrintedGameData printedGameData1 = new PrintedGameData(1, "whiteUser", "blackUser", "game1");
   PrintedGameData printedGameData2 = new PrintedGameData(2, null, null, "game2");
   @BeforeAll
-  public static void init() {
-    try {
-      mySqlGameDAO = new MySqlGameDataAccess();
-      mySqlGameDAO.deleteAllGames();
-      try (var conn=DatabaseManager.getConnection()) {
+  public static void init() throws DataAccessException {
+    mySqlGameDAO = new MySqlGameDataAccess();
+    mySqlGameDAO.deleteAllGames();
+    try (var conn=DatabaseManager.getConnection()) {
 
-        String gameJSON1 = new Gson().toJson(game1);
-        String gameJSON2 = new Gson().toJson(game2);
-        String[] statements={
-                "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (1, 'whiteUser', 'blackUser', 'game1', ?);",
-                "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (2, NULL, NULL, 'game2', ?);"
-        };
-        int counter=1;
-        for (var statement : statements) {
-          try (var preparedStatement=conn.prepareStatement(statement)) {
-            if (counter == 1) {
-              preparedStatement.setString(1, gameJSON1);
-            } else {
-              preparedStatement.setString(1, gameJSON2);
-            }
-            preparedStatement.executeUpdate();
+      String gameJSON1 = new Gson().toJson(game1);
+      String gameJSON2 = new Gson().toJson(game2);
+      String[] statements={
+              "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (1, 'whiteUser', 'blackUser', 'game1', ?);",
+              "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (2, NULL, NULL, 'game2', ?);"
+      };
+      int counter=1;
+      for (var statement : statements) {
+        try (var preparedStatement=conn.prepareStatement(statement)) {
+          if (counter == 1) {
+            preparedStatement.setString(1, gameJSON1);
+          } else {
+            preparedStatement.setString(1, gameJSON2);
+          }
+          preparedStatement.executeUpdate();
+          counter++;
+        } catch (SQLException e) {
+          if (e.getMessage().contains("Duplicate")) {
+            System.out.println("game" + counter + " already Exists");
             counter++;
-          } catch (SQLException e) {
-            if (e.getMessage().contains("Duplicate")) {
-              System.out.println("game" + counter + " already Exists");
-              counter++;
-            } else {
-              fail(e.getMessage());
-            }
+          } else {
+            fail(e.getMessage());
           }
         }
-        mySqlGameDAO.gameID = 3;
-      } catch (SQLException e) {
-        fail(e.getMessage());
       }
-    } catch (DataAccessException e) {
+      mySqlGameDAO.gameID = 3;
+    } catch (SQLException e) {
       fail(e.getMessage());
     }
   }

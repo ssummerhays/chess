@@ -27,20 +27,20 @@ class AuthDataAccessTest {
           try (var preparedStatement=conn.prepareStatement(statement)) {
             preparedStatement.executeUpdate();
             counter++;
-          } catch (SQLException e) {
-            if (e.getMessage().contains("Duplicate")) {
+          } catch (SQLException ex) {
+            if (ex.getMessage().contains("Duplicate")) {
               System.out.println("testAuth" + counter + " already Exists");
               counter++;
             } else {
-              fail(e.getMessage());
+              fail(ex.getMessage());
             }
           }
         }
-      } catch (SQLException e) {
-        fail(e.getMessage());
+      } catch (SQLException ex) {
+        fail(ex.getMessage());
       }
-    } catch (DataAccessException e) {
-      fail(e.getMessage());
+    } catch (DataAccessException ex) {
+      fail(ex.getMessage());
     }
   }
 
