@@ -88,7 +88,7 @@ public class MySqlGameDataAccess implements GameDataAccess {
         preparedStatement.setString(2, gameName);
         ChessGame newGame = new ChessGame();
         String jsonGame = new Gson().toJson(newGame);
-        preparedStatement.setString(1, jsonGame);
+        preparedStatement.setString(3, jsonGame);
         preparedStatement.executeUpdate();
         return prevGameID;
       }

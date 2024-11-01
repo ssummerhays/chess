@@ -55,6 +55,7 @@ class GameDataAccessTest {
             }
           }
         }
+        mySqlGameDAO.gameID = 3;
       } catch (SQLException e) {
         fail(e.getMessage());
       }
@@ -105,6 +106,34 @@ class GameDataAccessTest {
   @Order(5)
   @DisplayName("Positive createGame test")
   public void posCreateGameTest() {
+    try (var conn = DatabaseManager.getConnection()) {
+      try (var preparedStatement = conn.prepareStatement("DELETE FROM gameData WHERE gameName = 'createdGame'")) {
+        preparedStatement.executeUpdate();
+      }
+
+      mySqlGameDAO.createGame("createdGame");
+
+      String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJSON FROM gameData WHERE gameName='createdGame'";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        int gameID = rs.getInt(1);
+        String whiteUsername = rs.getString(2);
+        String blackUsername = rs.getString(3);
+        String gameName = rs.getString(4);
+        String gameJSON = rs.getString(5);
+        ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+
+        assertEquals(mySqlGameDAO.gameID - 1, gameID);
+        assertNull(whiteUsername);
+        assertNull(blackUsername);
+        assertEquals("createdGame", gameName);
+        ChessGame expectedGame = new ChessGame();
+        assertEquals(expectedGame, game);
+      }
+    } catch (Throwable e) {
+      fail();
+    }
 
   }
 
@@ -112,21 +141,45 @@ class GameDataAccessTest {
   @Order(6)
   @DisplayName("Negative createGame test")
   public void negCreateGameTest() {
-
+    Exception e = assertThrows(DataAccessException.class, () -> mySqlGameDAO.createGame("game1"));
+    assertTrue(e.getMessage().contains("already taken"));
   }
 
   @Test
   @Order(7)
   @DisplayName("Positive joinGame test")
   public void posJoinGameTest() {
+    try (var conn = DatabaseManager.getConnection()) {
+      mySqlGameDAO.joinGame(gameData2, "newUser", ChessGame.TeamColor.WHITE);
+      String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJSON FROM gameData WHERE gameID = ?";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.setInt(1, gameData2.gameID());
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        int gameID = rs.getInt(1);
+        String whiteUsername = rs.getString(2);
+        String blackUsername = rs.getString(3);
+        String gameName = rs.getString(4);
+        String gameJSON = rs.getString(5);
+        ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
 
+        assertEquals(gameData2.gameID(), gameID);
+        assertEquals("newUser", whiteUsername);
+        assertEquals(gameData2.blackUsername(), blackUsername);
+        assertEquals(gameData2.gameName(), gameName);
+        assertEquals(gameData2.game(), game);
+      }
+    } catch (Throwable e) {
+      fail(e.getMessage());
+    }
   }
 
   @Test
   @Order(8)
   @DisplayName("Negative joinGame test")
   public void negJoinGameTest() {
-
+    Exception e = assertThrows(DataAccessException.class, () -> mySqlGameDAO.joinGame(gameData1, "newUser", ChessGame.TeamColor.WHITE));
+    assertTrue(e.getMessage().contains("already taken"));
   }
 
   @Test
