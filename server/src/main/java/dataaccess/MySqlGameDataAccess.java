@@ -21,8 +21,8 @@ public class MySqlGameDataAccess implements GameDataAccess {
               """
             CREATE TABLE IF NOT EXISTS  gameData (
               `gameID` int NOT NULL UNIQUE,
-              `whiteUsername` varchar(256) UNIQUE,
-              `blackUsername` varchar(256) UNIQUE,
+              `whiteUsername` varchar(256),
+              `blackUsername` varchar(256),
               `gameName` varchar(256) NOT NULL UNIQUE,
               `gameJSON` varchar(2048) NOT NULL,
               PRIMARY KEY (`gameID`)
