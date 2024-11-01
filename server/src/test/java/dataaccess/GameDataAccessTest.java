@@ -5,10 +5,7 @@ import com.google.gson.Gson;
 import model.AuthData;
 import model.GameData;
 import model.PrintedGameData;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
 import java.util.Collection;
@@ -16,6 +13,7 @@ import java.util.HashSet;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class GameDataAccessTest {
   static MySqlGameDataAccess mySqlGameDAO;
   static ChessGame game1 = new ChessGame();
@@ -186,6 +184,19 @@ class GameDataAccessTest {
   @Order(9)
   @DisplayName("Positive deleteAllGames test")
   public void posDeleteAllGamesTest() {
+    try (var conn = DatabaseManager.getConnection()) {
+      mySqlGameDAO.deleteAllGames();
+      String statement = "SELECT COUNT(*) FROM gameData";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        var rs = preparedStatement.executeQuery();
+        rs.next();
+        int count = rs.getInt(1);
+
+        assertEquals(0, count);
+      }
+    } catch (Throwable e) {
+      fail();
+    }
 
   }
 }

@@ -2,16 +2,14 @@ package dataaccess;
 
 import model.AuthData;
 import model.UserData;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Order;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class AuthDataAccessTest {
   static MySqlAuthDataAccess mySqlAuthDAO;
 
@@ -143,7 +141,7 @@ class AuthDataAccessTest {
   public void posDeleteAllAuthTest() {
     try (var conn = DatabaseManager.getConnection()) {
       mySqlAuthDAO.deleteAllAuthTokens();
-      String statement = "SELECT COUNT(*) FROM userData";
+      String statement = "SELECT COUNT(*) FROM authData";
       try (var preparedStatement = conn.prepareStatement(statement)) {
         var rs = preparedStatement.executeQuery();
         rs.next();
