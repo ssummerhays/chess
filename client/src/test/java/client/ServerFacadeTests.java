@@ -64,4 +64,18 @@ public class ServerFacadeTests {
         Assertions.assertNotNull(loginResult.authToken(), "Response did not return authentication String");
     }
 
+    @Test
+    @Order(2)
+    @DisplayName("Login Invalid User")
+    public void loginInvalidUser() {
+        try {
+            LoginRequest loginRequest=new LoginRequest(newUser.username(), newUser.password());
+            serverFacade.login(loginRequest);
+        } catch (Exception e) {
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode(),
+                    "Server response code was not 401");
+            Assertions.assertTrue(e.getMessage().contains("401"));
+        }
+    }
+
 }
