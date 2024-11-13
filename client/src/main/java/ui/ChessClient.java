@@ -1,7 +1,11 @@
 package ui;
 
 import server.ServerFacade;
+import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.LoginResult;
+import service.results.RegisterResult;
 
 import java.util.Arrays;
 
@@ -9,6 +13,7 @@ public class ChessClient {
   private final ServerFacade serverFacade;
   private final String serverURL;
   public State state = State.LOGGED_OUT;
+  private String authToken = null;
 
   public ChessClient(String serverURL) {
     serverFacade = new ServerFacade(serverURL);
@@ -53,25 +58,41 @@ public class ChessClient {
             EscapeSequences.SET_TEXT_COLOR_BLUE + "help " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n";
   }
 
-  public String logIn(String... params) {
-    return null;
+  public String logIn(String... params) throws ResponseException {
+    if (params.length == 2) {
+      var username = params[0];
+      var password = params[1];
+      LoginRequest req = new LoginRequest(username, password);
+      LoginResult result = serverFacade.login(req);
+      authToken = result.authToken();
+      state = State.LOGGED_IN;
+      return String.format("You logged in as %s.", result.username());
+    }
+    throw new ResponseException(400, "Expected: <username> <password>");
   }
 
   public String register(String... params) throws ResponseException {
     if (params.length == 3) {
-      state = State.LOGGED_IN;
       var username = params[0];
       var password = params[1];
       var email = params[2];
       RegisterRequest req = new RegisterRequest(username, password, email);
-      serverFacade.register(req);
-      return String.format("You logged in as %s.", username);
+      RegisterResult res = serverFacade.register(req);
+      state = State.LOGGED_IN;
+      authToken = res.authToken();
+      return String.format("Successful Registration. You are now logged in as %s.", res.username());
     }
     throw new ResponseException(400, "Expected: <username> <password> <email>");
   }
 
-  public String logOut() {
-    return null;
+  public String logOut() throws ResponseException {
+    if (!authToken.isEmpty()) {
+      LogoutRequest req = new LogoutRequest(authToken);
+      serverFacade.logout(req);
+      state = State.LOGGED_OUT;
+      return "Successfully logged out. Type help for more commands";
+    }
+    throw new ResponseException(400, "already logged out");
   }
 
   public String createGame(String... params) {
