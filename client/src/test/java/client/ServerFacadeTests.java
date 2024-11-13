@@ -73,7 +73,7 @@ public class ServerFacadeTests {
         } catch (Exception e) {
             Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode(),
                     "Server response code was not 401");
-            Assertions.assertTrue(e.getMessage().contains("401"));
+            Assertions.assertTrue(e.getMessage().contains("unauthorized"));
         }
     }
 
@@ -89,6 +89,19 @@ public class ServerFacadeTests {
         Assertions.assertEquals(newUser.username(), registerResult.username(),
                 "Response did not have the same username as was registered");
         Assertions.assertNotNull(registerResult.authToken(), "Response did not contain an authentication string");
+    }
+
+    @Test
+    @Order(4)
+    @DisplayName("Re-Register User")
+    public void registerTwice() {
+        try {
+            RegisterRequest registerRequest=new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
+            serverFacade.register(registerRequest);
+        } catch (Exception e) {
+            Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, serverFacade.getStatusCode());
+            Assertions.assertTrue(e.getMessage().contains("already taken"));
+        }
     }
 
     private void assertHttpOk(int status) {
