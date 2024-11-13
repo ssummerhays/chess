@@ -157,6 +157,22 @@ public class ServerFacadeTests {
         Assertions.assertTrue(createResult.gameID() > 0, "Result returned invalid game ID");
     }
 
+    @Test
+    @Order(9)
+    @DisplayName("Create with Bad Authentication")
+    public void badAuthCreate() {
+        LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
+
+        Exception e = Assertions.assertThrows(Exception.class, () -> {
+             CreateGameResult createGameResult =  serverFacade.createGame(createRequest);
+            Assertions.assertNull(createGameResult.gameID(), "Bad result returned a game ID");
+        });
+
+        Assertions.assertTrue(e.getMessage().contains("unauthorized"));
+
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
