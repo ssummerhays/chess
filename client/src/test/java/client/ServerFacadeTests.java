@@ -239,6 +239,26 @@ public class ServerFacadeTests {
         Assertions.assertTrue(e.getMessage().contains("bad request"));
     }
 
+    @Test
+    @Order(11)
+    @DisplayName("Join Steal Team Color")
+    public void stealColorJoin() throws Exception {
+        CreateGameResult createResult = serverFacade.createGame(createRequest);
+
+        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.BLACK, createResult.gameID());
+        serverFacade.joinGame(joinRequest);
+
+        RegisterRequest registerRequest = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
+        RegisterResult registerResult = serverFacade.register(registerRequest);
+
+        JoinGameRequest newJoinRequest = new JoinGameRequest(registerResult.authToken(), ChessGame.TeamColor.BLACK, createResult.gameID());
+
+        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(newJoinRequest));
+
+        Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, serverFacade.getStatusCode());
+        Assertions.assertTrue(e.getMessage().contains("already taken"));
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
