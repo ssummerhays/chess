@@ -212,6 +212,19 @@ public class ServerFacadeTests {
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
+    @Test
+    @Order(11)
+    @DisplayName("Join Bad Team Color")
+    public void badColorJoin() throws Exception {
+        CreateGameResult createResult = serverFacade.createGame(createRequest);
+
+        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, null, createResult.gameID());
+        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(joinRequest));
+
+        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, serverFacade.getStatusCode());
+        Assertions.assertTrue(e.getMessage().contains("bad request"));
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
