@@ -104,6 +104,19 @@ public class ServerFacadeTests {
         }
     }
 
+    @Test
+    @Order(5)
+    @DisplayName("Register Bad Request")
+    public void failRegister() {
+        try {
+            RegisterRequest registerRequest=new RegisterRequest(existingUser.username(), null, existingUser.email());
+            serverFacade.register(registerRequest);
+        } catch (Exception e) {
+            Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, serverFacade.getStatusCode());
+            Assertions.assertTrue(e.getMessage().contains("bad request"));
+        }
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
