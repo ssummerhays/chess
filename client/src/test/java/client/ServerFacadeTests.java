@@ -56,8 +56,7 @@ public class ServerFacadeTests {
         LoginRequest loginRequest = new LoginRequest(existingUser.username(), existingUser.password());
         LoginResult loginResult = serverFacade.login(loginRequest);
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(),
-                "Server response code was not 200 OK");
+        assertHttpOk(serverFacade.getStatusCode());
 
         Assertions.assertEquals(existingUser.username(), loginResult.username(),
                 "Response did not give the same username as user");
@@ -76,6 +75,24 @@ public class ServerFacadeTests {
                     "Server response code was not 401");
             Assertions.assertTrue(e.getMessage().contains("401"));
         }
+    }
+
+    @Test
+    @Order(3)
+    @DisplayName("Normal User Registration")
+    public void successRegister() throws Exception {
+        RegisterRequest registerRequest = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
+        RegisterResult registerResult = serverFacade.register(registerRequest);
+
+        assertHttpOk(serverFacade.getStatusCode());
+
+        Assertions.assertEquals(newUser.username(), registerResult.username(),
+                "Response did not have the same username as was registered");
+        Assertions.assertNotNull(registerResult.authToken(), "Response did not contain an authentication string");
+    }
+
+    private void assertHttpOk(int status) {
+        Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
 
 }
