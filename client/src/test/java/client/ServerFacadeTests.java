@@ -1,18 +1,18 @@
 package client;
 
+import chess.ChessGame;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
-import service.requests.CreateGameRequest;
-import service.requests.LoginRequest;
-import service.requests.LogoutRequest;
-import service.requests.RegisterRequest;
+import service.requests.*;
 import service.results.CreateGameResult;
+import service.results.ListGamesResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
 
 import java.net.HttpURLConnection;
+import java.util.Objects;
 
 
 public class ServerFacadeTests {
@@ -39,6 +39,8 @@ public class ServerFacadeTests {
 
     @BeforeEach
     public void setup() throws Exception {
+        serverFacade.clear();
+
         RegisterRequest registerRequest = new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
         RegisterResult regResult = serverFacade.register(registerRequest);
         existingAuth = regResult.authToken();
@@ -165,11 +167,39 @@ public class ServerFacadeTests {
         Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
 
         Exception e = Assertions.assertThrows(Exception.class, () -> {
-             CreateGameResult createGameResult =  serverFacade.createGame(createRequest);
-            Assertions.assertNull(createGameResult.gameID(), "Bad result returned a game ID");
+            serverFacade.createGame(createRequest);
         });
 
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
+    }
+
+    @Test
+    @Order(10)
+    @DisplayName("Join Created Game")
+    public void goodJoin() {
+        Assertions.assertDoesNotThrow(() -> {
+            CreateGameResult createResult=serverFacade.createGame(createRequest);
+            JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.WHITE, createResult.gameID());
+            serverFacade.joinGame(joinRequest);
+
+            assertHttpOk(serverFacade.getStatusCode());
+
+            ListGamesRequest listGamesRequest = new ListGamesRequest(existingAuth);
+            ListGamesResult listResult = serverFacade.listGames(listGamesRequest);
+
+            boolean containsExpectedGameData = false;
+
+            for (var game : listResult.games()) {
+                if (Objects.equals(game.whiteUsername(), existingUser.username()) && game.blackUsername() == null) {
+                    containsExpectedGameData = true;
+                }
+            }
+
+            Assertions.assertTrue(containsExpectedGameData);
+        });
+
+
+
 
     }
 
