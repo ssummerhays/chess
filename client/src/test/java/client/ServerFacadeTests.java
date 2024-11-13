@@ -145,7 +145,6 @@ public class ServerFacadeTests {
 
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
-
     }
 
     @Test
@@ -170,6 +169,7 @@ public class ServerFacadeTests {
             serverFacade.createGame(createRequest);
         });
 
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
@@ -197,10 +197,19 @@ public class ServerFacadeTests {
 
             Assertions.assertTrue(containsExpectedGameData);
         });
+    }
 
+    @Test
+    @Order(11)
+    @DisplayName("Join Bad Authentication")
+    public void badAuthJoin() throws Exception {
+        CreateGameResult createResult = serverFacade.createGame(createRequest);
 
+        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth + "bad stuff", ChessGame.TeamColor.WHITE, createResult.gameID());
+        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(joinRequest));
 
-
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+        Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
     private void assertHttpOk(int status) {
