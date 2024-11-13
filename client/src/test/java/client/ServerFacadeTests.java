@@ -6,6 +6,7 @@ import server.Server;
 import server.ServerFacade;
 import service.requests.CreateGameRequest;
 import service.requests.LoginRequest;
+import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
 import service.results.LoginResult;
 import service.results.RegisterResult;
@@ -115,6 +116,15 @@ public class ServerFacadeTests {
             Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, serverFacade.getStatusCode());
             Assertions.assertTrue(e.getMessage().contains("bad request"));
         }
+    }
+
+    @Test
+    @Order(6)
+    @DisplayName("Normal Logout")
+    public void successLogout() {
+        LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
+        assertHttpOk(serverFacade.getStatusCode());
     }
 
     private void assertHttpOk(int status) {
