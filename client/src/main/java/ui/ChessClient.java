@@ -1,9 +1,11 @@
 package ui;
 
 import server.ServerFacade;
+import service.requests.CreateGameRequest;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.CreateGameResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
 
@@ -66,7 +68,7 @@ public class ChessClient {
       LoginResult result = serverFacade.login(req);
       authToken = result.authToken();
       state = State.LOGGED_IN;
-      return String.format("You logged in as %s.", result.username());
+      return String.format("You logged in as %s.\nType help to see more commands", result.username());
     }
     throw new ResponseException(400, "Expected: <username> <password>");
   }
@@ -80,23 +82,30 @@ public class ChessClient {
       RegisterResult res = serverFacade.register(req);
       state = State.LOGGED_IN;
       authToken = res.authToken();
-      return String.format("Successful Registration. You are now logged in as %s.", res.username());
+      return String.format("Successful Registration. You are now logged in as %s.\nType help to see more commands", res.username());
     }
     throw new ResponseException(400, "Expected: <username> <password> <email>");
   }
 
   public String logOut() throws ResponseException {
-    if (!authToken.isEmpty()) {
+    if (authToken != null) {
       LogoutRequest req = new LogoutRequest(authToken);
       serverFacade.logout(req);
       state = State.LOGGED_OUT;
+      authToken = null;
       return "Successfully logged out. Type help for more commands";
     }
     throw new ResponseException(400, "already logged out");
   }
 
-  public String createGame(String... params) {
-    return null;
+  public String createGame(String... params) throws ResponseException {
+    if (params.length == 1) {
+      String gameName = params[0];
+      CreateGameRequest req = new CreateGameRequest(authToken, gameName);
+      CreateGameResult res = serverFacade.createGame(req);
+      return String.format("Successfully created game %d. %s", res.gameID(), gameName);
+    }
+    throw new ResponseException(400, "Expected: <gameName>");
   }
 
   public String listGames() {
