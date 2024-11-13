@@ -8,6 +8,7 @@ import service.requests.CreateGameRequest;
 import service.requests.LoginRequest;
 import service.requests.LogoutRequest;
 import service.requests.RegisterRequest;
+import service.results.CreateGameResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
 
@@ -143,6 +144,17 @@ public class ServerFacadeTests {
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
 
+    }
+
+    @Test
+    @Order(8)
+    @DisplayName("Valid Creation")
+    public void goodCreate() throws Exception {
+        CreateGameResult createResult = serverFacade.createGame(createRequest);
+
+        assertHttpOk(serverFacade.getStatusCode());
+        Assertions.assertNotNull(createResult.gameID(), "Result did not return a game ID");
+        Assertions.assertTrue(createResult.gameID() > 0, "Result returned invalid game ID");
     }
 
     private void assertHttpOk(int status) {
