@@ -338,8 +338,53 @@ public class ServerFacadeTests {
         }
     }
 
+    @Test
+    @Order(13)
+    @DisplayName("Unique Authtoken Each Login")
+    public void uniqueAuthorizationTokens() {
+        Assertions.assertDoesNotThrow(() -> {
+            LoginResult loginOne = serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password()));
+            assertHttpOk(serverFacade.getStatusCode());
+
+            Assertions.assertNotNull(loginOne.authToken(),
+                    "Login result did not contain an authToken");
+
+            LoginResult loginTwo = serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password()));
+            assertHttpOk(serverFacade.getStatusCode());
+
+            Assertions.assertNotNull(loginTwo.authToken(),
+                    "Login result did not contain an authToken");
+            Assertions.assertNotEquals(existingAuth, loginOne.authToken(),
+                    "Authtoken returned by login matched authtoken from prior register");
+            Assertions.assertNotEquals(existingAuth, loginTwo.authToken(),
+                    "Authtoken returned by login matched authtoken from prior register");
+            Assertions.assertNotEquals(loginOne.authToken(), loginTwo.authToken(),
+                    "Authtoken returned by login matched authtoken from prior login");
+
+
+            CreateGameResult createResult = serverFacade.createGame(createRequest);
+            assertHttpOk(serverFacade.getStatusCode());
+
+
+            serverFacade.logout(new LogoutRequest(existingAuth));
+            assertHttpOk(serverFacade.getStatusCode());
+
+
+            JoinGameRequest joinRequest = new JoinGameRequest(loginOne.authToken(), ChessGame.TeamColor.WHITE, createResult.gameID());
+            serverFacade.joinGame(joinRequest);
+            assertHttpOk(serverFacade.getStatusCode());
+
+
+            ListGamesResult listResult = serverFacade.listGames(new ListGamesRequest(loginTwo.authToken()));
+            assertHttpOk(serverFacade.getStatusCode());
+
+            Assertions.assertEquals(1, listResult.games().size());
+            Assertions.assertEquals(existingUser.username(), listResult.games().iterator().next().whiteUsername());
+        });
+    }
+
     private void assertHttpOk(int status) {
-        Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
+        Assertions.assertEquals(HttpURLConnection.HTTP_OK, status, "Server response code was not 200 ok");
     }
 
 }
