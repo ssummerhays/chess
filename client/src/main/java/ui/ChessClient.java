@@ -1,13 +1,14 @@
 package ui;
 
 import server.ServerFacade;
+import service.requests.RegisterRequest;
 
 import java.util.Arrays;
 
 public class ChessClient {
   private final ServerFacade serverFacade;
   private final String serverURL;
-  private State state = State.SIGNED_OUT;
+  public State state = State.LOGGED_OUT;
 
   public ChessClient(String serverURL) {
     serverFacade = new ServerFacade(serverURL);
@@ -37,7 +38,7 @@ public class ChessClient {
   }
 
   public String help() {
-    if (state == State.SIGNED_OUT) {
+    if (state == State.LOGGED_OUT) {
       return "register <USERNAME> <PASSWORD> <EMAIL> " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- to create an account\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "login <USERNAME> <PASSWORD> " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- to play chess\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "quit " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- playing chess\n" +
@@ -56,8 +57,17 @@ public class ChessClient {
     return null;
   }
 
-  public String register(String... params) {
-    return null;
+  public String register(String... params) throws ResponseException {
+    if (params.length == 3) {
+      state = State.LOGGED_IN;
+      var username = params[0];
+      var password = params[1];
+      var email = params[2];
+      RegisterRequest req = new RegisterRequest(username, password, email);
+      serverFacade.register(req);
+      return String.format("You logged in as %s.", username);
+    }
+    throw new ResponseException(400, "Expected: <username> <password> <email>");
   }
 
   public String logOut() {
