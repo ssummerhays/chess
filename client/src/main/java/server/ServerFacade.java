@@ -7,6 +7,7 @@ import service.results.CreateGameResult;
 import service.results.ListGamesResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
+import ui.ResponseException;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,42 +23,42 @@ public class ServerFacade {
 
   public ServerFacade(String url) { serverURL = url; }
 
-  public RegisterResult register(RegisterRequest req) throws Exception {
+  public RegisterResult register(RegisterRequest req) throws ResponseException {
     String path = "/user";
     return this.makeRequest("POST", path, req, RegisterResult.class);
   }
 
-  public LoginResult login(LoginRequest req) throws Exception {
+  public LoginResult login(LoginRequest req) throws ResponseException {
     String path = "/session";
     return this.makeRequest("POST", path, req, LoginResult.class);
   }
 
-  public void logout(LogoutRequest req) throws Exception {
+  public void logout(LogoutRequest req) throws ResponseException {
     String path = "/session";
     this.makeRequest("DELETE", path, req, null);
   }
 
-  public ListGamesResult listGames(ListGamesRequest req) throws Exception{
+  public ListGamesResult listGames(ListGamesRequest req) throws ResponseException{
     String path = "/game";
     return this.makeRequest("GET", path, req, ListGamesResult.class);
   }
 
-  public CreateGameResult createGame(CreateGameRequest req) throws  Exception {
+  public CreateGameResult createGame(CreateGameRequest req) throws  ResponseException {
     String path = "/game";
     return this.makeRequest("POST", path, req, CreateGameResult.class);
   }
 
-  public void joinGame(JoinGameRequest req) throws Exception {
+  public void joinGame(JoinGameRequest req) throws ResponseException {
     String path = "/game";
     this.makeRequest("PUT", path, req, null);
   }
 
-  public void clear() throws Exception {
+  public void clear() throws ResponseException {
     String path = "/db";
     this.makeRequest("DELETE", path, null, null);
   }
 
-  private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {
+  private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
     try {
       URL url=(new URI(serverURL + path)).toURL();
       HttpURLConnection http=(HttpURLConnection) url.openConnection();
@@ -72,7 +73,7 @@ public class ServerFacade {
       throwIfNotSuccessful(http);
       return readBody(http, responseClass);
     } catch (Exception e) {
-      throw new Exception(e.getMessage());
+      throw new ResponseException(statusCode, e.getMessage());
     }
   }
 
