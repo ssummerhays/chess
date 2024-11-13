@@ -1,15 +1,15 @@
 package ui;
 
+import model.PrintedGameData;
 import server.ServerFacade;
-import service.requests.CreateGameRequest;
-import service.requests.LoginRequest;
-import service.requests.LogoutRequest;
-import service.requests.RegisterRequest;
+import service.requests.*;
 import service.results.CreateGameResult;
+import service.results.ListGamesResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
 
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class ChessClient {
   private final ServerFacade serverFacade;
@@ -99,6 +99,7 @@ public class ChessClient {
   }
 
   public String createGame(String... params) throws ResponseException {
+    assertLoggedIn();
     if (params.length == 1) {
       String gameName = params[0];
       CreateGameRequest req = new CreateGameRequest(authToken, gameName);
@@ -108,8 +109,29 @@ public class ChessClient {
     throw new ResponseException(400, "Expected: <gameName>");
   }
 
-  public String listGames() {
-    return null;
+  public String listGames() throws ResponseException {
+    assertLoggedIn();
+    ListGamesRequest req = new ListGamesRequest(authToken);
+    ListGamesResult res = serverFacade.listGames(req);
+    PrintedGameData[] gameList = res.games().toArray(new PrintedGameData[0]);
+    Arrays.sort(gameList, Comparator.comparingInt(PrintedGameData::gameID));
+
+    if (gameList.length == 0) {
+      return "No active games right now.";
+    }
+    String result = "";
+    for (var game : gameList) {
+      if (game.whiteUsername() != null && game.blackUsername() != null) {
+        result += game.gameID() + ". " + game.gameName() + ": " + game.whiteUsername() + "(white) vs " + game.blackUsername() + "(black)\n";
+      } else if (game.whiteUsername() != null) {
+        result += game.gameID() + ". " + game.gameName() + ": " + game.whiteUsername() + "(white) vs (black empty)\n";
+      } else if (game.blackUsername() != null) {
+        result += game.gameID() + ". " + game.gameName() + ": (white empty) vs " + game.blackUsername() + "(black)\n";
+      } else {
+        result += game.gameID() + ". " + game.gameName() + ": no players in game currently\n";
+      }
+    }
+    return result;
   }
 
   public String joinGamePlayer(String... params) {
@@ -118,5 +140,11 @@ public class ChessClient {
 
   public String observeGame(String... params) {
     return null;
+  }
+
+  private void assertLoggedIn() throws ResponseException {
+    if (state == State.LOGGED_OUT) {
+      throw new ResponseException(400, "you must sign in");
+    }
   }
 }
