@@ -77,9 +77,13 @@ public class ServerFacade {
       http.addRequestProperty("Content-Type", "application/json");
       String reqData = new Gson().toJson(request);
       if (reqData.contains("authToken")) {
-        JsonObject object = new Gson().fromJson(reqData, JsonObject.class);
-        String authToken = object.get("authToken").getAsString();
+
+        JsonObject json = new Gson().fromJson(reqData, JsonObject.class);
+        String authToken = json.get("authToken").getAsString();
         http.addRequestProperty("Authorization", authToken);
+
+        json.remove("authToken");
+        reqData = new Gson().toJson(json);
       }
       try (OutputStream reqBody = http.getOutputStream()) {
         reqBody.write(reqData.getBytes());
