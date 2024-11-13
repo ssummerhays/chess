@@ -54,6 +54,9 @@ public class UserService {
       throw new DataAccessException("Error: unauthorized");
     }
     if (!Objects.equals(password, userData.password())) {
+      if (userDAO.getClass() == MemoryUserDataAccess.class) {
+        throw new DataAccessException("Error: unauthorized");
+      }
       if (!BCrypt.checkpw(password, userData.password())) {
         throw new DataAccessException("Error: unauthorized");
       }
