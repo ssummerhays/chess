@@ -259,6 +259,20 @@ public class ServerFacadeTests {
         Assertions.assertTrue(e.getMessage().contains("already taken"));
     }
 
+    @Test
+    @Order(12)
+    @DisplayName("List No Games")
+    public void noGamesList() {
+        Assertions.assertDoesNotThrow(() -> {
+            ListGamesRequest listGamesRequest = new ListGamesRequest(existingAuth);
+            ListGamesResult result = serverFacade.listGames(listGamesRequest);
+
+            assertHttpOk(serverFacade.getStatusCode());
+            Assertions.assertTrue(result.games() == null || result.games().isEmpty(),
+                    "Found games when none should be there");
+        });
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
