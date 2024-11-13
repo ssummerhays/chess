@@ -2,9 +2,6 @@ package handler;
 
 import com.google.gson.Gson;
 import dataaccess.DataAccessException;
-import dataaccess.MemoryAuthDataAccess;
-import dataaccess.MemoryGameDataAccess;
-import dataaccess.MemoryUserDataAccess;
 import service.GameService;
 import service.UserService;
 import service.requests.LoginRequest;
