@@ -383,6 +383,49 @@ public class ServerFacadeTests {
         });
     }
 
+    @Test
+    @Order(14)
+    @DisplayName("Clear Test")
+    public void clearData() {
+        Assertions.assertDoesNotThrow(() -> {
+            serverFacade.createGame(new CreateGameRequest(existingAuth, "Mediocre game"));
+            serverFacade.createGame(new CreateGameRequest(existingAuth, "Awesome game"));
+
+            UserData user = new UserData("ClearMe", "cleared", "clear@mail.com");
+            RegisterResult registerResult = serverFacade.register(new RegisterRequest(user.username(), user.password(), user.email()));
+
+            CreateGameResult createResult = serverFacade.createGame(new CreateGameRequest(registerResult.authToken(), "Clear game"));
+
+            JoinGameRequest joinRequest = new JoinGameRequest(registerResult.authToken(), ChessGame.TeamColor.WHITE, createResult.gameID());
+            serverFacade.joinGame(joinRequest);
+
+            serverFacade.clear();
+            assertHttpOk(serverFacade.getStatusCode());
+
+            Exception loginE = Assertions.assertThrows(Exception.class, () -> {
+                LoginResult loginResult = serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password()));
+
+            });
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+            Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
+
+            Exception listE = Assertions.assertThrows(Exception.class, () -> {
+                ListGamesResult listGamesResult = serverFacade.listGames(new ListGamesRequest(existingAuth));
+
+            });
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+            Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
+
+            registerResult = serverFacade.register(new RegisterRequest(user.username(), user.password(), user.email()));
+            assertHttpOk(serverFacade.getStatusCode());
+
+            ListGamesResult listResult = serverFacade.listGames(new ListGamesRequest(registerResult.authToken()));
+            assertHttpOk(serverFacade.getStatusCode());
+
+            Assertions.assertEquals(0, listResult.games().size(), "list result did not return 0 games after clear");
+        });
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status, "Server response code was not 200 ok");
     }
