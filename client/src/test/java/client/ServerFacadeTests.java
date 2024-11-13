@@ -1,6 +1,8 @@
 package client;
 
 import chess.ChessGame;
+import model.GameData;
+import model.PrintedGameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
@@ -12,6 +14,9 @@ import service.results.LoginResult;
 import service.results.RegisterResult;
 
 import java.net.HttpURLConnection;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 
 
@@ -271,6 +276,66 @@ public class ServerFacadeTests {
             Assertions.assertTrue(result.games() == null || result.games().isEmpty(),
                     "Found games when none should be there");
         });
+    }
+
+    @Test
+    @Order(12)
+    @DisplayName("List Multiple Games")
+    public void gamesList() throws Exception {
+        UserData userA = new UserData("a", "A", "a.A");
+        UserData userB = new UserData("b", "B", "b.B");
+        UserData userC = new UserData("c", "C", "c.C");
+
+        RegisterRequest registerRequestA = new RegisterRequest(userA.username(), userA.password(), userA.email());
+        RegisterRequest registerRequestB = new RegisterRequest(userB.username(), userB.password(), userB.email());
+        RegisterRequest registerRequestC = new RegisterRequest(userC.username(), userC.password(), userC.email());
+
+        RegisterResult authA = serverFacade.register(registerRequestA);
+        RegisterResult authB = serverFacade.register(registerRequestB);
+        RegisterResult authC = serverFacade.register(registerRequestC);
+
+        Collection<PrintedGameData> expectedList = new HashSet<>();
+
+        String game1Name = "I'm numbah one!";
+        CreateGameResult game1 = serverFacade.createGame(new CreateGameRequest(authA.authToken(), game1Name));
+        serverFacade.joinGame(new JoinGameRequest(authA.authToken(), ChessGame.TeamColor.BLACK, game1.gameID()));
+        expectedList.add(new PrintedGameData(game1.gameID(), null, authA.username(), game1Name));
+
+
+        String game2Name = "Lonely";
+        CreateGameResult game2 = serverFacade.createGame(new CreateGameRequest(authB.authToken(), game2Name));
+        serverFacade.joinGame(new JoinGameRequest(authB.authToken(), ChessGame.TeamColor.WHITE, game2.gameID()));
+        expectedList.add(new PrintedGameData(game2.gameID(), authB.username(), null, game2Name));
+
+
+        String game3Name = "GG";
+        CreateGameResult game3 = serverFacade.createGame(new CreateGameRequest(authC.authToken(), game3Name));
+        serverFacade.joinGame(new JoinGameRequest(authC.authToken(), ChessGame.TeamColor.WHITE, game3.gameID()));
+        serverFacade.joinGame(new JoinGameRequest(authA.authToken(), ChessGame.TeamColor.BLACK, game3.gameID()));
+        expectedList.add(new PrintedGameData(game3.gameID(), authC.username(), authA.username(), game3Name));
+
+
+        String game4Name = "All by myself";
+        CreateGameResult game4 = serverFacade.createGame(new CreateGameRequest(authC.authToken(), game4Name));
+        serverFacade.joinGame(new JoinGameRequest(authC.authToken(), ChessGame.TeamColor.WHITE, game4.gameID()));
+        serverFacade.joinGame(new JoinGameRequest(authC.authToken(), ChessGame.TeamColor.BLACK, game4.gameID()));
+        expectedList.add(new PrintedGameData(game4.gameID(), authC.username(), authC.username(), game4Name));
+
+
+        ListGamesResult listResult = serverFacade.listGames(new ListGamesRequest(existingAuth));
+        assertHttpOk(serverFacade.getStatusCode());
+        Collection<PrintedGameData> returnedList = listResult.games();
+
+        for (PrintedGameData data : returnedList) {
+            boolean inList = false;
+            for (PrintedGameData actualData : expectedList) {
+                if (data.equals(actualData)) {
+                    inList = true;
+                    break;
+                }
+            }
+            Assertions.assertTrue(inList, "Returned Games list was incorrect");
+        }
     }
 
     private void assertHttpOk(int status) {
