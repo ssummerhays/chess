@@ -127,6 +127,24 @@ public class ServerFacadeTests {
         assertHttpOk(serverFacade.getStatusCode());
     }
 
+    @Test
+    @Order(7)
+    @DisplayName("Invalid Auth Logout")
+    public void failLogout() {
+        LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
+
+        assertHttpOk(serverFacade.getStatusCode());
+
+        Exception e = Assertions.assertThrows(Exception.class, () -> {
+            serverFacade.logout(logoutRequest);
+        });
+
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+        Assertions.assertTrue(e.getMessage().contains("unauthorized"));
+
+    }
+
     private void assertHttpOk(int status) {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, status);
     }
