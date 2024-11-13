@@ -2,10 +2,10 @@ package ui;
 
 import java.util.Scanner;
 
-public class PreLoginRepl {
+public class Repl {
   private final ChessClient client;
 
-  public PreLoginRepl(String serverURL) { client = new ChessClient(serverURL);}
+  public Repl(String serverURL) { client = new ChessClient(serverURL);}
 
   public void run() {
     System.out.println("♕ Welcome to 240 Chess. Type help to begin");
@@ -27,5 +27,5 @@ public class PreLoginRepl {
     }
   }
 
-  private void printPrompt() { System.out.print("\n" + EscapeSequences.RESET_TEXT_COLOR + "[LOGGED_OUT] >>> "); }
+  private void printPrompt() { System.out.print("\n" + EscapeSequences.RESET_TEXT_COLOR + "[" + client.state + "] >>> "); }
 }
