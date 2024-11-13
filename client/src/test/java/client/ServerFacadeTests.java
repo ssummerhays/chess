@@ -1,7 +1,6 @@
 package client;
 
 import chess.ChessGame;
-import model.GameData;
 import model.PrintedGameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
@@ -14,7 +13,6 @@ import service.results.LoginResult;
 import service.results.RegisterResult;
 
 import java.net.HttpURLConnection;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
@@ -144,9 +142,7 @@ public class ServerFacadeTests {
 
         assertHttpOk(serverFacade.getStatusCode());
 
-        Exception e = Assertions.assertThrows(Exception.class, () -> {
-            serverFacade.logout(logoutRequest);
-        });
+        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.logout(logoutRequest));
 
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
@@ -159,7 +155,6 @@ public class ServerFacadeTests {
         CreateGameResult createResult = serverFacade.createGame(createRequest);
 
         assertHttpOk(serverFacade.getStatusCode());
-        Assertions.assertNotNull(createResult.gameID(), "Result did not return a game ID");
         Assertions.assertTrue(createResult.gameID() > 0, "Result returned invalid game ID");
     }
 
@@ -170,9 +165,7 @@ public class ServerFacadeTests {
         LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
         Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
 
-        Exception e = Assertions.assertThrows(Exception.class, () -> {
-            serverFacade.createGame(createRequest);
-        });
+        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.createGame(createRequest));
 
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
@@ -197,6 +190,7 @@ public class ServerFacadeTests {
             for (var game : listResult.games()) {
                 if (Objects.equals(game.whiteUsername(), existingUser.username()) && game.blackUsername() == null) {
                     containsExpectedGameData = true;
+                    break;
                 }
             }
 
@@ -235,7 +229,7 @@ public class ServerFacadeTests {
     @DisplayName("Join Bad Game ID")
     public void badGameIDJoin() throws Exception {
         createRequest = new CreateGameRequest(existingAuth, "Bad Join");
-        CreateGameResult createResult = serverFacade.createGame(createRequest);
+        serverFacade.createGame(createRequest);
 
         JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.WHITE, -1);
         Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(joinRequest));
@@ -402,19 +396,14 @@ public class ServerFacadeTests {
             serverFacade.clear();
             assertHttpOk(serverFacade.getStatusCode());
 
-            Exception loginE = Assertions.assertThrows(Exception.class, () -> {
-                LoginResult loginResult = serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password()));
+            Exception loginE = Assertions.assertThrows(Exception.class, () -> serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password())));
 
-            });
             Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
             Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
 
-            Exception listE = Assertions.assertThrows(Exception.class, () -> {
-                ListGamesResult listGamesResult = serverFacade.listGames(new ListGamesRequest(existingAuth));
-
-            });
+            Exception listE = Assertions.assertThrows(Exception.class, () ->serverFacade.listGames(new ListGamesRequest(existingAuth)));
             Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
-            Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
+            Assertions.assertTrue(listE.getMessage().contains("unauthorized"));
 
             registerResult = serverFacade.register(new RegisterRequest(user.username(), user.password(), user.email()));
             assertHttpOk(serverFacade.getStatusCode());
@@ -423,6 +412,19 @@ public class ServerFacadeTests {
             assertHttpOk(serverFacade.getStatusCode());
 
             Assertions.assertEquals(0, listResult.games().size(), "list result did not return 0 games after clear");
+        });
+    }
+
+    @Test
+    @Order(14)
+    @DisplayName("Multiple Clears")
+    public void multipleClear() {
+        Assertions.assertDoesNotThrow(() -> {
+            serverFacade.clear();
+            serverFacade.clear();
+            serverFacade.clear();
+
+            assertHttpOk(serverFacade.getStatusCode());
         });
     }
 
