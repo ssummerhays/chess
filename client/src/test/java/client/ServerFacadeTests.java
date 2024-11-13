@@ -11,6 +11,7 @@ import service.results.CreateGameResult;
 import service.results.ListGamesResult;
 import service.results.LoginResult;
 import service.results.RegisterResult;
+import ui.ResponseException;
 
 import java.net.HttpURLConnection;
 import java.util.Collection;
@@ -41,7 +42,7 @@ public class ServerFacadeTests {
     }
 
     @BeforeEach
-    public void setup() throws Exception {
+    public void setup() throws ResponseException {
         serverFacade.clear();
 
         RegisterRequest registerRequest = new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
@@ -59,7 +60,7 @@ public class ServerFacadeTests {
     @Test
     @Order(1)
     @DisplayName("Normal User Login")
-    public void successLogin() throws Exception {
+    public void successLogin() throws ResponseException {
         LoginRequest loginRequest = new LoginRequest(existingUser.username(), existingUser.password());
         LoginResult loginResult = serverFacade.login(loginRequest);
 
@@ -77,8 +78,8 @@ public class ServerFacadeTests {
         try {
             LoginRequest loginRequest=new LoginRequest(newUser.username(), newUser.password());
             serverFacade.login(loginRequest);
-        } catch (Exception e) {
-            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode(),
+        } catch (ResponseException e) {
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode(),
                     "Server response code was not 401");
             Assertions.assertTrue(e.getMessage().contains("unauthorized"));
         }
@@ -87,7 +88,7 @@ public class ServerFacadeTests {
     @Test
     @Order(3)
     @DisplayName("Normal User Registration")
-    public void successRegister() throws Exception {
+    public void successRegister() throws ResponseException {
         RegisterRequest registerRequest = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
         RegisterResult registerResult = serverFacade.register(registerRequest);
 
@@ -105,8 +106,8 @@ public class ServerFacadeTests {
         try {
             RegisterRequest registerRequest=new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
             serverFacade.register(registerRequest);
-        } catch (Exception e) {
-            Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, serverFacade.getStatusCode());
+        } catch (ResponseException e) {
+            Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.StatusCode());
             Assertions.assertTrue(e.getMessage().contains("already taken"));
         }
     }
@@ -118,8 +119,8 @@ public class ServerFacadeTests {
         try {
             RegisterRequest registerRequest=new RegisterRequest(existingUser.username(), null, existingUser.email());
             serverFacade.register(registerRequest);
-        } catch (Exception e) {
-            Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, serverFacade.getStatusCode());
+        } catch (ResponseException e) {
+            Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
             Assertions.assertTrue(e.getMessage().contains("bad request"));
         }
     }
@@ -142,16 +143,16 @@ public class ServerFacadeTests {
 
         assertHttpOk(serverFacade.getStatusCode());
 
-        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.logout(logoutRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.logout(logoutRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
     @Test
     @Order(8)
     @DisplayName("Valid Creation")
-    public void goodCreate() throws Exception {
+    public void goodCreate() throws ResponseException {
         CreateGameResult createResult = serverFacade.createGame(createRequest);
 
         assertHttpOk(serverFacade.getStatusCode());
@@ -165,9 +166,9 @@ public class ServerFacadeTests {
         LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
         Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
 
-        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.createGame(createRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.createGame(createRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
@@ -201,47 +202,47 @@ public class ServerFacadeTests {
     @Test
     @Order(11)
     @DisplayName("Join Bad Authentication")
-    public void badAuthJoin() throws Exception {
+    public void badAuthJoin() throws ResponseException {
         CreateGameResult createResult = serverFacade.createGame(createRequest);
 
         JoinGameRequest joinRequest = new JoinGameRequest(existingAuth + "bad stuff", ChessGame.TeamColor.WHITE, createResult.gameID());
-        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(joinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
     @Test
     @Order(11)
     @DisplayName("Join Bad Team Color")
-    public void badColorJoin() throws Exception {
+    public void badColorJoin() throws ResponseException {
         CreateGameResult createResult = serverFacade.createGame(createRequest);
 
         JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, null, createResult.gameID());
-        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(joinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, serverFacade.getStatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("bad request"));
     }
 
     @Test
     @Order(11)
     @DisplayName("Join Bad Game ID")
-    public void badGameIDJoin() throws Exception {
+    public void badGameIDJoin() throws ResponseException {
         createRequest = new CreateGameRequest(existingAuth, "Bad Join");
         serverFacade.createGame(createRequest);
 
         JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.WHITE, -1);
-        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(joinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, serverFacade.getStatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("bad request"));
     }
 
     @Test
     @Order(11)
     @DisplayName("Join Steal Team Color")
-    public void stealColorJoin() throws Exception {
+    public void stealColorJoin() throws ResponseException {
         CreateGameResult createResult = serverFacade.createGame(createRequest);
 
         JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.BLACK, createResult.gameID());
@@ -252,9 +253,9 @@ public class ServerFacadeTests {
 
         JoinGameRequest newJoinRequest = new JoinGameRequest(registerResult.authToken(), ChessGame.TeamColor.BLACK, createResult.gameID());
 
-        Exception e = Assertions.assertThrows(Exception.class, () -> serverFacade.joinGame(newJoinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(newJoinRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, serverFacade.getStatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("already taken"));
     }
 
@@ -275,7 +276,7 @@ public class ServerFacadeTests {
     @Test
     @Order(12)
     @DisplayName("List Multiple Games")
-    public void gamesList() throws Exception {
+    public void gamesList() throws ResponseException {
         UserData userA = new UserData("a", "A", "a.A");
         UserData userB = new UserData("b", "B", "b.B");
         UserData userC = new UserData("c", "C", "c.C");
@@ -396,13 +397,13 @@ public class ServerFacadeTests {
             serverFacade.clear();
             assertHttpOk(serverFacade.getStatusCode());
 
-            Exception loginE = Assertions.assertThrows(Exception.class, () -> serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password())));
+            ResponseException loginE = Assertions.assertThrows(ResponseException.class, () -> serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password())));
 
-            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, loginE.StatusCode());
             Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
 
-            Exception listE = Assertions.assertThrows(Exception.class, () ->serverFacade.listGames(new ListGamesRequest(existingAuth)));
-            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, serverFacade.getStatusCode());
+            ResponseException listE = Assertions.assertThrows(ResponseException.class, () ->serverFacade.listGames(new ListGamesRequest(existingAuth)));
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, listE.StatusCode());
             Assertions.assertTrue(listE.getMessage().contains("unauthorized"));
 
             registerResult = serverFacade.register(new RegisterRequest(user.username(), user.password(), user.email()));
