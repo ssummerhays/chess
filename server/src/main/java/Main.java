@@ -1,4 +1,3 @@
-import chess.*;
 import dataaccess.*;
 import server.Server;
 import service.GameService;
@@ -25,6 +24,11 @@ public class Main {
             var gameService = new GameService(authDataAccess, gameDataAccess);
             var serverPort = new Server(userService, gameService).run(port);
 
+            String database = "Memory Database";
+            if (userDataAccess.getClass() == MySqlUserDataAccess.class) {
+                database = "MySql Database";
+            }
+            System.out.printf("Server started on %d with %s%n", serverPort, database);
         } catch (Throwable e) {
             System.out.printf("Unable to start server: %s%n", e.getMessage());
         }
