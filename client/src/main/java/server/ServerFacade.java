@@ -14,6 +14,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.*;
+import java.util.Objects;
 
 public class ServerFacade {
   private final String serverURL;
@@ -61,9 +62,12 @@ public class ServerFacade {
       URL url=(new URI(serverURL + path)).toURL();
       HttpURLConnection http=(HttpURLConnection) url.openConnection();
       http.setRequestMethod(method);
-      http.setDoOutput(true);
+      if (!(Objects.equals(method, "GET"))) {
+        http.setDoOutput(true);
+      }
 
       writeBody(request, http);
+
       http.connect();
       throwIfNotSuccessful(http);
       return readBody(http, responseClass);
@@ -85,8 +89,10 @@ public class ServerFacade {
         json.remove("authToken");
         reqData = new Gson().toJson(json);
       }
-      try (OutputStream reqBody = http.getOutputStream()) {
-        reqBody.write(reqData.getBytes());
+      if (!Objects.equals(http.getRequestMethod(), "GET")) {
+        try (OutputStream reqBody=http.getOutputStream()) {
+          reqBody.write(reqData.getBytes());
+        }
       }
     }
   }
