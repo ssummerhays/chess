@@ -22,9 +22,19 @@ public class Server {
 
     public Server() {
         try {
-            UserDataAccess userDataAccess=new MySqlUserDataAccess();
-            AuthDataAccess authDataAccess=new MySqlAuthDataAccess();
-            GameDataAccess gameDataAccess=new MySqlGameDataAccess();
+            boolean mySql = false;
+            UserDataAccess userDataAccess;
+            AuthDataAccess authDataAccess;
+            GameDataAccess gameDataAccess;
+            if (mySql) {
+                userDataAccess=new MySqlUserDataAccess();
+                authDataAccess=new MySqlAuthDataAccess();
+                gameDataAccess=new MySqlGameDataAccess();
+            } else {
+                userDataAccess = new MemoryUserDataAccess();
+                authDataAccess = new MemoryAuthDataAccess();
+                gameDataAccess = new MemoryGameDataAccess();
+            }
 
             this.userService=new UserService(userDataAccess, authDataAccess, gameDataAccess);
             this.gameService=new GameService(authDataAccess, gameDataAccess);
