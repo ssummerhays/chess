@@ -139,8 +139,8 @@ public class ChessClient {
         result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE +
                 " (white) vs " + SET_TEXT_COLOR_RED + "(black empty)\n" + SET_TEXT_COLOR_BLUE;
       } else if (game.blackUsername() != null) {
-        result += SET_TEXT_COLOR_RED + "(white empty)" + SET_TEXT_COLOR_BLUE + " vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT +
-                SET_TEXT_COLOR_BLUE + " (black)\n";
+        result += SET_TEXT_COLOR_RED + "(white empty)" + SET_TEXT_COLOR_BLUE + " vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA +
+                game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
       } else {
         result += SET_TEXT_COLOR_RED + "no players in game currently\n" + SET_TEXT_COLOR_BLUE;
       }
