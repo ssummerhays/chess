@@ -179,8 +179,15 @@ public class ChessClient {
     throw new ResponseException(400, "Expected: <gameID> [WHITE|BLACK]");
   }
 
-  public String observeGame(String... params) {
-    return null;
+  public String observeGame(String... params) throws ResponseException {
+    assertLoggedIn();
+    if (params.length == 1) {
+      if (!params[0].matches("\\d+")) {
+        throw new ResponseException(400, "GameID must be an integer");
+      }
+    }
+    int gameID = Integer.parseInt(params[0]);
+    return printGame(gameID, ChessGame.TeamColor.WHITE) + printGame(gameID, ChessGame.TeamColor.BLACK);
   }
 
   private void assertLoggedIn() throws ResponseException {
