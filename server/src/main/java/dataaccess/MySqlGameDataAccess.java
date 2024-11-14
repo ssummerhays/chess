@@ -4,15 +4,12 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 import model.PrintedGameData;
-import model.UserData;
-import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
 
 public class MySqlGameDataAccess implements GameDataAccess {
-  int gameID = 1;
 
   public MySqlGameDataAccess() throws DataAccessException{
     DatabaseManager.createDatabase();
@@ -20,7 +17,7 @@ public class MySqlGameDataAccess implements GameDataAccess {
       String[] createStatements={
               """
             CREATE TABLE IF NOT EXISTS  gameData (
-              `gameID` int NOT NULL UNIQUE,
+              `gameID` int NOT NULL AUTO_INCREMENT,
               `whiteUsername` varchar(256),
               `blackUsername` varchar(256),
               `gameName` varchar(256) NOT NULL UNIQUE,
@@ -80,17 +77,21 @@ public class MySqlGameDataAccess implements GameDataAccess {
 
   public int createGame(String gameName) throws DataAccessException {
     try (var conn = DatabaseManager.getConnection()) {
-      String statement = "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (?, NULL, NULL, ?, ?)";
+      String statement = "INSERT INTO gameData (whiteUsername, blackUsername, gameName, gameJSON) VALUES (NULL, NULL, ?, ?)";
       try (var preparedStatement = conn.prepareStatement(statement)) {
-        preparedStatement.setInt(1, gameID);
-        int prevGameID = gameID;
-        gameID++;
-        preparedStatement.setString(2, gameName);
+        preparedStatement.setString(1, gameName);
         ChessGame newGame = new ChessGame();
         String jsonGame = new Gson().toJson(newGame);
-        preparedStatement.setString(3, jsonGame);
+        preparedStatement.setString(2, jsonGame);
         preparedStatement.executeUpdate();
-        return prevGameID;
+        int gameID;
+        try (var nextPreparedStatement = conn.prepareStatement("SELECT gameID FROM gameData WHERE gameName=?")) {
+          nextPreparedStatement.setString(1, gameName);
+          var rs = nextPreparedStatement.executeQuery();
+          rs.next();
+          gameID = rs.getInt(1);
+        }
+        return gameID;
       }
     } catch (SQLException e) {
       if (e.getMessage().contains("Duplicate")) {
