@@ -1,4 +1,4 @@
-package server;
+package serverHelper;
 
 import server.Server;
 

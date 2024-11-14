@@ -1,4 +1,4 @@
-import server.ServerHelper;
+import serverHelper.ServerHelper;
 import ui.Repl;
 
 public class Main {
