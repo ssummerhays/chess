@@ -1,4 +1,5 @@
 import server.Server;
+import ui.ChessClient;
 import ui.Repl;
 
 public class Main {
@@ -15,7 +16,9 @@ public class Main {
             serverURL = args[0];
         }
 
-        new Repl(serverURL).run();
+        ChessClient client = new ChessClient(serverURL, server.userDataAccess, server.authDataAccess, server.gameDataAccess);
+        new Repl(client).run();
+
         server.stop();
     }
 }

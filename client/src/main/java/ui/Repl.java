@@ -7,6 +7,8 @@ public class Repl {
 
   public Repl(String serverURL) { client = new ChessClient(serverURL);}
 
+  public Repl(ChessClient client) {this.client = client;}
+
   public void run() {
     System.out.println("♕ Welcome to 240 Chess. Type help to begin");
 

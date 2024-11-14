@@ -2,6 +2,9 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import dataaccess.AuthDataAccess;
+import dataaccess.GameDataAccess;
+import dataaccess.UserDataAccess;
 import service.requests.*;
 import service.results.CreateGameResult;
 import service.results.ListGamesResult;
@@ -21,7 +24,23 @@ public class ServerFacade {
   private final String serverURL;
   private int statusCode = 200;
 
+  public UserDataAccess userDAO;
+  public AuthDataAccess authDAO;
+  public GameDataAccess gameDAO;
+
   public ServerFacade(String url) { serverURL = url; }
+
+  public void setUserDAO(UserDataAccess userDAO) {
+    this.userDAO=userDAO;
+  }
+
+  public void setAuthDAO(AuthDataAccess authDAO) {
+    this.authDAO=authDAO;
+  }
+
+  public void setGameDAO(GameDataAccess gameDAO) {
+    this.gameDAO=gameDAO;
+  }
 
   public RegisterResult register(RegisterRequest req) throws ResponseException {
     String path = "/user";

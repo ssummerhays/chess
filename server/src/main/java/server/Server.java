@@ -13,6 +13,10 @@ public class Server {
     UserHandler userHandler;
     GameHandler gameHandler;
 
+    public UserDataAccess userDataAccess;
+    public AuthDataAccess authDataAccess;
+    public GameDataAccess gameDataAccess;
+
     public Server(UserService userService, GameService gameService) {
         this.userService = userService;
         this.gameService = gameService;
@@ -22,10 +26,7 @@ public class Server {
 
     public Server() {
         try {
-            boolean mySql = false;
-            UserDataAccess userDataAccess;
-            AuthDataAccess authDataAccess;
-            GameDataAccess gameDataAccess;
+            boolean mySql = true;
             if (mySql) {
                 userDataAccess=new MySqlUserDataAccess();
                 authDataAccess=new MySqlAuthDataAccess();

@@ -14,7 +14,7 @@ import java.util.Objects;
  */
 public class ChessGame {
 
-    private ChessBoard chessBoard;
+    public ChessBoard chessBoard;
     private TeamColor turnColor;
 
     public ChessGame() {
