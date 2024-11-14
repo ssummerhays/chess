@@ -23,6 +23,7 @@ public class ChessClient {
   private final String serverURL;
   public State state = State.LOGGED_OUT;
   private String authToken = null;
+  private PrintedGameData[] gameListArray;
 
   public ChessClient(String serverURL) {
     serverFacade = new ServerFacade(serverURL);
@@ -109,7 +110,7 @@ public class ChessClient {
     if (params.length == 1) {
       String gameName = params[0];
       JsonObject res = serverFacade.createGame(authToken, gameName);
-      return String.format("Successfully created game %d. %s", res.get("gameID").getAsInt(), gameName);
+      return String.format("Successfully created game: %s%s%s", SET_TEXT_COLOR_MAGENTA, gameName, SET_TEXT_COLOR_BLUE);
     }
     throw new ResponseException(400, "Expected: <gameName>");
   }
@@ -121,15 +122,16 @@ public class ChessClient {
 
     Collection<PrintedGameData> gameList = new Gson().fromJson(res.get("games"), collectionType);
 
-    PrintedGameData[] gameListArray = gameList.toArray(new PrintedGameData[0]);
+    gameListArray = gameList.toArray(new PrintedGameData[0]);
     Arrays.sort(gameListArray, Comparator.comparingInt(PrintedGameData::gameID));
 
     if (gameListArray.length == 0) {
       return SET_TEXT_COLOR_RED + "No active games right now." + SET_TEXT_COLOR_BLUE;
     }
     String result = "";
-    for (var game : gameListArray) {
-      result += SET_TEXT_ITALIC + game.gameID() + RESET_TEXT_ITALIC + ". " + game.gameName() + ": ";
+    for (int i = 1; i <= gameList.size(); i++) {
+      PrintedGameData game = gameListArray[i - 1];
+      result += SET_TEXT_ITALIC + i + RESET_TEXT_ITALIC + ". " + game.gameName() + ": ";
       if (game.whiteUsername() != null && game.blackUsername() != null) {
         result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (white) vs " +
                 SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
@@ -152,8 +154,11 @@ public class ChessClient {
       if (!params[0].matches("\\d+")) {
         throw new ResponseException(400, "GameID must be an integer");
       }
-      int gameID = Integer.parseInt(params[0]);
+      int listNum = Integer.parseInt(params[0]);
       var teamColorStr = params[1];
+
+      PrintedGameData gameData = gameListArray[listNum - 1];
+      int gameID = gameData.gameID();
 
       if (!Objects.equals(teamColorStr, "white") && !teamColorStr.equals("black")) {
         throw new ResponseException(400, "Expected [WHITE|BLACK]");
@@ -199,7 +204,8 @@ public class ChessClient {
       int rowNum = r + 1;
       String rowStr = SET_BG_COLOR_LIGHT_GREY + " " + rowNum + " ";
       var row = game.chessBoard.squares[r];
-      for (int c = 0; c < 8; c++) {
+      for (int c = (color == ChessGame.TeamColor.BLACK)? 7 : 0; (color == ChessGame.TeamColor.BLACK)? c >= 0 : c < 8;
+           c = (color == ChessGame.TeamColor.BLACK)? c - 1 : c + 1) {
         ChessPiece piece = row[c];
         ChessPiece.PieceType type = (piece != null)? piece.getPieceType() : null;
         String pieceStr;
@@ -213,7 +219,8 @@ public class ChessClient {
           case null -> pieceStr = EMPTY;
         }
         String squareResult;
-        String setBgColor = ((rowNum + c) % 2 == 0)? SET_BG_COLOR_MAGENTA : SET_BG_COLOR_WHITE;
+        String setBgColor= ((rowNum + c) % 2 == 0)? SET_BG_COLOR_WHITE : SET_BG_COLOR_MAGENTA;
+
         squareResult = setBgColor + " " + pieceStr + " ";
         rowStr += squareResult;
       }
