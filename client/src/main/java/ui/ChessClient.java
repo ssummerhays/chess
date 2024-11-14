@@ -1,5 +1,12 @@
 package ui;
 
+import chess.ChessGame;
+import chess.ChessPiece;
+import dataaccess.AuthDataAccess;
+import dataaccess.DataAccessException;
+import dataaccess.GameDataAccess;
+import dataaccess.UserDataAccess;
+import model.GameData;
 import model.PrintedGameData;
 import server.ServerFacade;
 import service.requests.*;
@@ -10,6 +17,9 @@ import service.results.RegisterResult;
 
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Objects;
+
+import static ui.EscapeSequences.*;
 
 public class ChessClient {
   private final ServerFacade serverFacade;
@@ -19,6 +29,14 @@ public class ChessClient {
 
   public ChessClient(String serverURL) {
     serverFacade = new ServerFacade(serverURL);
+    this.serverURL = serverURL;
+  }
+
+  public ChessClient(String serverURL, UserDataAccess userDAO, AuthDataAccess authDAO, GameDataAccess gameDAO) {
+    serverFacade = new ServerFacade(serverURL);
+    serverFacade.setUserDAO(userDAO);
+    serverFacade.setGameDAO(gameDAO);
+    serverFacade.setAuthDAO(authDAO);
     this.serverURL = serverURL;
   }
 
@@ -95,7 +113,7 @@ public class ChessClient {
       authToken = null;
       return "Successfully logged out. Type help for more commands";
     }
-    throw new ResponseException(400, "already logged out");
+    throw new ResponseException(400, "Error: already logged out");
   }
 
   public String createGame(String... params) throws ResponseException {
@@ -121,21 +139,44 @@ public class ChessClient {
     }
     String result = "";
     for (var game : gameList) {
+      result += SET_TEXT_ITALIC + game.gameID() + RESET_TEXT_ITALIC + ". " + game.gameName() + ": ";
       if (game.whiteUsername() != null && game.blackUsername() != null) {
-        result += game.gameID() + ". " + game.gameName() + ": " + game.whiteUsername() + "(white) vs " + game.blackUsername() + "(black)\n";
+        result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (white) vs " +
+                SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
       } else if (game.whiteUsername() != null) {
-        result += game.gameID() + ". " + game.gameName() + ": " + game.whiteUsername() + "(white) vs (black empty)\n";
+        result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE +
+                " (white) vs (black empty)\n";
       } else if (game.blackUsername() != null) {
-        result += game.gameID() + ". " + game.gameName() + ": (white empty) vs " + game.blackUsername() + "(black)\n";
+        result += "(white empty) vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT +
+                SET_TEXT_COLOR_BLUE + " (black)\n";
       } else {
-        result += game.gameID() + ". " + game.gameName() + ": no players in game currently\n";
+        result += SET_TEXT_COLOR_RED + "no players in game currently\n" + SET_TEXT_COLOR_BLUE;
       }
     }
     return result;
   }
 
-  public String joinGamePlayer(String... params) {
-    return null;
+  public String joinGamePlayer(String... params) throws ResponseException {
+    assertLoggedIn();
+    if (params.length == 2) {
+      if (!params[0].matches("\\d+")) {
+        throw new ResponseException(400, "GameID must be an integer");
+      }
+      int gameID = Integer.parseInt(params[0]);
+      var teamColorStr = params[1];
+
+      if (!Objects.equals(teamColorStr, "white") && !teamColorStr.equals("black")) {
+        throw new ResponseException(400, "Expected [WHITE|BLACK]");
+      }
+      ChessGame.TeamColor teamColor = (Objects.equals(teamColorStr, "white")) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+      ChessGame.TeamColor oppositeColor = (Objects.equals(teamColorStr, "white")) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
+
+      JoinGameRequest req = new JoinGameRequest(authToken, teamColor, gameID);
+      serverFacade.joinGame(req);
+
+      return printGame(gameID, teamColor) + printGame(gameID, oppositeColor);
+    }
+    throw new ResponseException(400, "Expected: <gameID> [WHITE|BLACK]");
   }
 
   public String observeGame(String... params) {
@@ -146,5 +187,59 @@ public class ChessClient {
     if (state == State.LOGGED_OUT) {
       throw new ResponseException(400, "you must sign in");
     }
+  }
+
+  private String printGame(int gameID, ChessGame.TeamColor color) throws ResponseException {
+    try {
+      GameData gameData=serverFacade.gameDAO.getGame(gameID);
+      ChessGame game = gameData.game();
+      String firstLastRow = (color == ChessGame.TeamColor.WHITE)?
+              SET_BG_COLOR_LIGHT_GREY + EMPTY + SET_TEXT_COLOR_BLACK + "  a" + EMPTY + " b" + EMPTY + " c" + EMPTY + " d" + EMPTY + " e" +
+                      EMPTY + " f" + EMPTY + " g" + EMPTY + " h  " + EMPTY + RESET_BG_COLOR + "\n"
+              : SET_BG_COLOR_LIGHT_GREY + EMPTY + SET_TEXT_COLOR_BLACK + "  h" + EMPTY + " g" + EMPTY + " f" + EMPTY + " e" + EMPTY + " d" +
+              EMPTY + " c" + EMPTY + " b" + EMPTY + " a  " + EMPTY + RESET_BG_COLOR +"\n";
+      String printedBoard = "\n" + firstLastRow;
+      for (int r = (color == ChessGame.TeamColor.WHITE)? 7 : 0; (color == ChessGame.TeamColor.WHITE)? r >= 0 : r < 8;
+           r = (color == ChessGame.TeamColor.WHITE)? r - 1 : r + 1) {
+        int rowNum = r + 1;
+        String rowStr = SET_BG_COLOR_LIGHT_GREY + " " + rowNum + " ";
+        var row = game.chessBoard.squares[r];
+        for (int c = 0; c < 8; c++) {
+          ChessPiece piece = row[c];
+          ChessPiece.PieceType type = (piece != null)? piece.getPieceType() : null;
+          String pieceStr;
+          switch (type) {
+            case KING -> pieceStr = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? WHITE_KING : BLACK_KING;
+            case QUEEN -> pieceStr = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? WHITE_QUEEN : BLACK_QUEEN;
+            case BISHOP -> pieceStr = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? WHITE_BISHOP : BLACK_BISHOP;
+            case KNIGHT -> pieceStr = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? WHITE_KNIGHT : BLACK_KNIGHT;
+            case ROOK -> pieceStr = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? WHITE_ROOK : BLACK_ROOK;
+            case PAWN -> pieceStr = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? WHITE_PAWN : BLACK_PAWN;
+            case null -> pieceStr = EMPTY;
+          }
+          String squareResult;
+          String setBgColor = ((rowNum + c) % 2 == 0)? SET_BG_COLOR_MAGENTA : SET_BG_COLOR_WHITE;
+          squareResult = setBgColor + " " + pieceStr + " ";
+          rowStr += squareResult;
+        }
+        rowStr += SET_BG_COLOR_LIGHT_GREY + " " + rowNum + " " + RESET_BG_COLOR + "\n";
+        printedBoard += rowStr;
+      }
+      printedBoard += firstLastRow;
+
+      return printedBoard;
+
+    } catch (DataAccessException e) {
+      int statusCode = 500;
+      if (e.getMessage().contains("bad request")) {
+        statusCode = 400;
+      } else if (e.getMessage().contains("unauthorized")) {
+        statusCode = 401;
+      } else if (e.getMessage().contains("already taken")) {
+        statusCode = 403;
+      }
+      throw new ResponseException(statusCode, e.getMessage());
+    }
+
   }
 }
