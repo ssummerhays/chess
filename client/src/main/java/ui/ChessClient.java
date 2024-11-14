@@ -125,7 +125,7 @@ public class ChessClient {
     Arrays.sort(gameListArray, Comparator.comparingInt(PrintedGameData::gameID));
 
     if (gameListArray.length == 0) {
-      return "No active games right now.";
+      return SET_TEXT_COLOR_RED + "No active games right now." + SET_TEXT_COLOR_BLUE;
     }
     String result = "";
     for (var game : gameListArray) {
@@ -135,9 +135,9 @@ public class ChessClient {
                 SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
       } else if (game.whiteUsername() != null) {
         result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE +
-                " (white) vs (black empty)\n";
+                " (white) vs " + SET_TEXT_COLOR_RED + "(black empty)\n" + SET_TEXT_COLOR_BLUE;
       } else if (game.blackUsername() != null) {
-        result += "(white empty) vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT +
+        result += SET_TEXT_COLOR_RED + "(white empty)" + SET_TEXT_COLOR_BLUE + " vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT +
                 SET_TEXT_COLOR_BLUE + " (black)\n";
       } else {
         result += SET_TEXT_COLOR_RED + "no players in game currently\n" + SET_TEXT_COLOR_BLUE;
@@ -174,9 +174,10 @@ public class ChessClient {
       if (!params[0].matches("\\d+")) {
         throw new ResponseException(400, "GameID must be an integer");
       }
+      int gameID = Integer.parseInt(params[0]);
+      return printGame(gameID, ChessGame.TeamColor.WHITE) + printGame(gameID, ChessGame.TeamColor.BLACK);
     }
-    int gameID = Integer.parseInt(params[0]);
-    return printGame(gameID, ChessGame.TeamColor.WHITE) + printGame(gameID, ChessGame.TeamColor.BLACK);
+    throw new ResponseException(400, "Expected: <gameID>");
   }
 
   private void assertLoggedIn() throws ResponseException {
