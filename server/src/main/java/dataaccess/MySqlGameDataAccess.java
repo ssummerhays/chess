@@ -10,6 +10,7 @@ import java.util.Collection;
 import java.util.HashSet;
 
 public class MySqlGameDataAccess implements GameDataAccess {
+  int gameID = 1;
 
   public MySqlGameDataAccess() throws DataAccessException{
     DatabaseManager.createDatabase();
@@ -57,6 +58,9 @@ public class MySqlGameDataAccess implements GameDataAccess {
   }
 
   public GameData getGame(int gameID) throws DataAccessException {
+    if (gameID <= 0) {
+      throw new DataAccessException("Error: bad request");
+    }
     try (var conn = DatabaseManager.getConnection()) {
       String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJSON FROM gameData WHERE gameID=?";
       try (var preparedStatement = conn.prepareStatement(statement)) {
@@ -90,6 +94,7 @@ public class MySqlGameDataAccess implements GameDataAccess {
           var rs = nextPreparedStatement.executeQuery();
           rs.next();
           gameID = rs.getInt(1);
+          this.gameID = gameID + 1;
         }
         return gameID;
       }

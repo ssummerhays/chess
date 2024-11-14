@@ -2,7 +2,6 @@ package dataaccess;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import model.AuthData;
 import model.GameData;
 import model.PrintedGameData;
 import org.junit.jupiter.api.*;
@@ -94,7 +93,7 @@ class GameDataAccessTest {
   @DisplayName("Negative getGame test")
   public void negGetGameTest() {
     Exception e = assertThrows(DataAccessException.class, () -> mySqlGameDAO.getGame(0));
-    assertTrue(e.getMessage().contains("unauthorized"));
+    assertTrue(e.getMessage().contains("bad request"));
   }
 
   @Test
