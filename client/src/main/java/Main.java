@@ -1,15 +1,17 @@
-import serverHelper.ServerHelper;
+import server.Server;
 import ui.Repl;
 
 public class Main {
     public static void main(String[] args) {
 
-        ServerHelper serverHelper = new ServerHelper();
-        String serverURL = serverHelper.runServer(0);
+        Server server = new Server();
+        int port = server.run(0);
+
+        String serverURL = "http://localhost:" + port;
 
 
         new Repl(serverURL).run();
 
-        serverHelper.stopServer();
+        server.stop();
     }
 }
