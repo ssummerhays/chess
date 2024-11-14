@@ -1,18 +1,17 @@
 package client;
 
-import chess.ChessGame;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
+import com.google.gson.reflect.TypeToken;
 import model.PrintedGameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
-import service.requests.*;
-import service.results.CreateGameResult;
-import service.results.ListGamesResult;
-import service.results.LoginResult;
-import service.results.RegisterResult;
+
 import ui.ResponseException;
 
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.util.Collection;
 import java.util.HashSet;
@@ -23,7 +22,7 @@ public class ServerFacadeTests {
 
     private static UserData existingUser;
     private static UserData newUser;
-    private static CreateGameRequest createRequest;
+    private static String createRequest;
     private String existingAuth;
     private static Server server;
     static ServerFacade serverFacade;
@@ -31,7 +30,7 @@ public class ServerFacadeTests {
     @BeforeAll
     public static void init() {
         server = new Server();
-        var port = server.run(8080);
+        var port = server.run(0);
         System.out.println("Started test HTTP server on " + port);
         String url = "http://localhost:" + port;
         serverFacade = new ServerFacade(url);
@@ -45,11 +44,10 @@ public class ServerFacadeTests {
     public void setup() throws ResponseException {
         serverFacade.clear();
 
-        RegisterRequest registerRequest = new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
-        RegisterResult regResult = serverFacade.register(registerRequest);
-        existingAuth = regResult.authToken();
+        JsonObject regResult = serverFacade.register(existingUser);
+        existingAuth = regResult.get("authToken").getAsString();
 
-        createRequest = new CreateGameRequest(existingAuth, "testGame");
+        createRequest = "testGame";
     }
 
     @AfterAll
@@ -61,14 +59,13 @@ public class ServerFacadeTests {
     @Order(1)
     @DisplayName("Normal User Login")
     public void successLogin() throws ResponseException {
-        LoginRequest loginRequest = new LoginRequest(existingUser.username(), existingUser.password());
-        LoginResult loginResult = serverFacade.login(loginRequest);
+        JsonObject loginResult = serverFacade.login(existingUser.username(), existingUser.password());
 
         assertHttpOk(serverFacade.getStatusCode());
 
-        Assertions.assertEquals(existingUser.username(), loginResult.username(),
+        Assertions.assertEquals(existingUser.username(), loginResult.get("username").getAsString(),
                 "Response did not give the same username as user");
-        Assertions.assertNotNull(loginResult.authToken(), "Response did not return authentication String");
+        Assertions.assertNotNull(loginResult.get("authToken").getAsString(), "Response did not return authentication String");
     }
 
     @Test
@@ -76,8 +73,8 @@ public class ServerFacadeTests {
     @DisplayName("Login Invalid User")
     public void loginInvalidUser() {
         try {
-            LoginRequest loginRequest=new LoginRequest(newUser.username(), newUser.password());
-            serverFacade.login(loginRequest);
+            serverFacade.login(newUser.username(), newUser.password());
+            Assertions.fail();
         } catch (ResponseException e) {
             Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode(),
                     "Server response code was not 401");
@@ -89,14 +86,13 @@ public class ServerFacadeTests {
     @Order(3)
     @DisplayName("Normal User Registration")
     public void successRegister() throws ResponseException {
-        RegisterRequest registerRequest = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
-        RegisterResult registerResult = serverFacade.register(registerRequest);
+        JsonObject registerResult = serverFacade.register(newUser);
 
         assertHttpOk(serverFacade.getStatusCode());
 
-        Assertions.assertEquals(newUser.username(), registerResult.username(),
+        Assertions.assertEquals(newUser.username(), registerResult.get("username").getAsString(),
                 "Response did not have the same username as was registered");
-        Assertions.assertNotNull(registerResult.authToken(), "Response did not contain an authentication string");
+        Assertions.assertNotNull(registerResult.get("authToken").getAsString(), "Response did not contain an authentication string");
     }
 
     @Test
@@ -104,8 +100,8 @@ public class ServerFacadeTests {
     @DisplayName("Re-Register User")
     public void registerTwice() {
         try {
-            RegisterRequest registerRequest=new RegisterRequest(existingUser.username(), existingUser.password(), existingUser.email());
-            serverFacade.register(registerRequest);
+            serverFacade.register(existingUser);
+            Assertions.fail();
         } catch (ResponseException e) {
             Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.StatusCode());
             Assertions.assertTrue(e.getMessage().contains("already taken"));
@@ -117,8 +113,9 @@ public class ServerFacadeTests {
     @DisplayName("Register Bad Request")
     public void failRegister() {
         try {
-            RegisterRequest registerRequest=new RegisterRequest(existingUser.username(), null, existingUser.email());
-            serverFacade.register(registerRequest);
+            UserData badData=new UserData(existingUser.username(), null, existingUser.email());
+            serverFacade.register(badData);
+            Assertions.fail();
         } catch (ResponseException e) {
             Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
             Assertions.assertTrue(e.getMessage().contains("bad request"));
@@ -129,8 +126,7 @@ public class ServerFacadeTests {
     @Order(6)
     @DisplayName("Normal Logout")
     public void successLogout() {
-        LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
-        Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(existingAuth));
         assertHttpOk(serverFacade.getStatusCode());
     }
 
@@ -138,12 +134,11 @@ public class ServerFacadeTests {
     @Order(7)
     @DisplayName("Invalid Auth Logout")
     public void failLogout() {
-        LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
-        Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(existingAuth));
 
         assertHttpOk(serverFacade.getStatusCode());
 
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.logout(logoutRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.logout(existingAuth));
 
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
@@ -153,20 +148,19 @@ public class ServerFacadeTests {
     @Order(8)
     @DisplayName("Valid Creation")
     public void goodCreate() throws ResponseException {
-        CreateGameResult createResult = serverFacade.createGame(createRequest);
+        JsonObject createResult = serverFacade.createGame(existingAuth, createRequest);
 
         assertHttpOk(serverFacade.getStatusCode());
-        Assertions.assertTrue(createResult.gameID() > 0, "Result returned invalid game ID");
+        Assertions.assertTrue(createResult.get("gameID").getAsInt() > 0, "Result returned invalid game ID");
     }
 
     @Test
     @Order(9)
     @DisplayName("Create with Bad Authentication")
     public void badAuthCreate() {
-        LogoutRequest logoutRequest = new LogoutRequest(existingAuth);
-        Assertions.assertDoesNotThrow(() -> serverFacade.logout(logoutRequest));
+        Assertions.assertDoesNotThrow(() -> serverFacade.logout(existingAuth));
 
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.createGame(createRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.createGame(existingAuth, createRequest));
 
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
@@ -177,18 +171,20 @@ public class ServerFacadeTests {
     @DisplayName("Join Created Game")
     public void goodJoin() {
         Assertions.assertDoesNotThrow(() -> {
-            CreateGameResult createResult=serverFacade.createGame(createRequest);
-            JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.WHITE, createResult.gameID());
-            serverFacade.joinGame(joinRequest);
+            JsonObject createResult=serverFacade.createGame(existingAuth, createRequest);
+
+            serverFacade.joinGame(existingAuth, "WHITE", createResult.get("gameID").getAsInt());
 
             assertHttpOk(serverFacade.getStatusCode());
 
-            ListGamesRequest listGamesRequest = new ListGamesRequest(existingAuth);
-            ListGamesResult listResult = serverFacade.listGames(listGamesRequest);
+            JsonObject listResult = serverFacade.listGames(existingAuth);
 
             boolean containsExpectedGameData = false;
+            Type collectionType = new TypeToken<Collection<PrintedGameData>>(){}.getType();
 
-            for (var game : listResult.games()) {
+            Collection<PrintedGameData> gameList = new Gson().fromJson(listResult.get("games"), collectionType);
+
+            for (var game : gameList) {
                 if (Objects.equals(game.whiteUsername(), existingUser.username()) && game.blackUsername() == null) {
                     containsExpectedGameData = true;
                     break;
@@ -203,10 +199,11 @@ public class ServerFacadeTests {
     @Order(11)
     @DisplayName("Join Bad Authentication")
     public void badAuthJoin() throws ResponseException {
-        CreateGameResult createResult = serverFacade.createGame(createRequest);
+        JsonObject createResult = serverFacade.createGame(existingAuth, createRequest);
 
-        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth + "bad stuff", ChessGame.TeamColor.WHITE, createResult.gameID());
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.joinGame(existingAuth + "badStuff", "WHITE", createResult.get("gameID").getAsInt());
+        });
 
         Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
@@ -216,10 +213,11 @@ public class ServerFacadeTests {
     @Order(11)
     @DisplayName("Join Bad Team Color")
     public void badColorJoin() throws ResponseException {
-        CreateGameResult createResult = serverFacade.createGame(createRequest);
+        JsonObject createResult = serverFacade.createGame(existingAuth, createRequest);
 
-        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, null, createResult.gameID());
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.joinGame(existingAuth, null, createResult.get("gameID").getAsInt());
+        });
 
         Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("bad request"));
@@ -229,11 +227,11 @@ public class ServerFacadeTests {
     @Order(11)
     @DisplayName("Join Bad Game ID")
     public void badGameIDJoin() throws ResponseException {
-        createRequest = new CreateGameRequest(existingAuth, "Bad Join");
-        serverFacade.createGame(createRequest);
+        serverFacade.createGame(existingAuth, "Bad Join");
 
-        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.WHITE, -1);
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(joinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.joinGame(existingAuth, "white", -1);
+        });
 
         Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("bad request"));
@@ -243,17 +241,15 @@ public class ServerFacadeTests {
     @Order(11)
     @DisplayName("Join Steal Team Color")
     public void stealColorJoin() throws ResponseException {
-        CreateGameResult createResult = serverFacade.createGame(createRequest);
+        JsonObject createResult = serverFacade.createGame(existingAuth, createRequest);
 
-        JoinGameRequest joinRequest = new JoinGameRequest(existingAuth, ChessGame.TeamColor.BLACK, createResult.gameID());
-        serverFacade.joinGame(joinRequest);
+        serverFacade.joinGame(existingAuth, "BLACK", createResult.get("gameID").getAsInt());
 
-        RegisterRequest registerRequest = new RegisterRequest(newUser.username(), newUser.password(), newUser.email());
-        RegisterResult registerResult = serverFacade.register(registerRequest);
+        JsonObject registerResult = serverFacade.register(newUser);
 
-        JoinGameRequest newJoinRequest = new JoinGameRequest(registerResult.authToken(), ChessGame.TeamColor.BLACK, createResult.gameID());
-
-        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.joinGame(newJoinRequest));
+        ResponseException e = Assertions.assertThrows(ResponseException.class, () -> {
+            serverFacade.joinGame(registerResult.get("authToken").getAsString(), "BLACK", createResult.get("gameID").getAsInt());
+        });
 
         Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.StatusCode());
         Assertions.assertTrue(e.getMessage().contains("already taken"));
@@ -264,12 +260,14 @@ public class ServerFacadeTests {
     @DisplayName("List No Games")
     public void noGamesList() {
         Assertions.assertDoesNotThrow(() -> {
-            ListGamesRequest listGamesRequest = new ListGamesRequest(existingAuth);
-            ListGamesResult result = serverFacade.listGames(listGamesRequest);
+            JsonObject result = serverFacade.listGames(existingAuth);
 
             assertHttpOk(serverFacade.getStatusCode());
-            Assertions.assertTrue(result.games() == null || result.games().isEmpty(),
-                    "Found games when none should be there");
+
+            Type collectionType = new TypeToken<Collection<PrintedGameData>>(){}.getType();
+
+            Collection<PrintedGameData> gameList = new Gson().fromJson(result.get("games"), collectionType);
+          Assertions.assertEquals(0, gameList.size(), "Found games when none should be there");
         });
     }
 
@@ -281,45 +279,53 @@ public class ServerFacadeTests {
         UserData userB = new UserData("b", "B", "b.B");
         UserData userC = new UserData("c", "C", "c.C");
 
-        RegisterRequest registerRequestA = new RegisterRequest(userA.username(), userA.password(), userA.email());
-        RegisterRequest registerRequestB = new RegisterRequest(userB.username(), userB.password(), userB.email());
-        RegisterRequest registerRequestC = new RegisterRequest(userC.username(), userC.password(), userC.email());
+        JsonObject authA = serverFacade.register(userA);
+        JsonObject authB = serverFacade.register(userB);
+        JsonObject authC = serverFacade.register(userC);
 
-        RegisterResult authA = serverFacade.register(registerRequestA);
-        RegisterResult authB = serverFacade.register(registerRequestB);
-        RegisterResult authC = serverFacade.register(registerRequestC);
+        String authAToken = authA.get("authToken").getAsString();
+        String authBToken = authB.get("authToken").getAsString();
+        String authCToken = authC.get("authToken").getAsString();
+
+        String authAUsername = authA.get("username").getAsString();
+        String authBUsername = authB.get("username").getAsString();
+        String authCUsername = authC.get("username").getAsString();
 
         Collection<PrintedGameData> expectedList = new HashSet<>();
 
         String game1Name = "I'm numbah one!";
-        CreateGameResult game1 = serverFacade.createGame(new CreateGameRequest(authA.authToken(), game1Name));
-        serverFacade.joinGame(new JoinGameRequest(authA.authToken(), ChessGame.TeamColor.BLACK, game1.gameID()));
-        expectedList.add(new PrintedGameData(game1.gameID(), null, authA.username(), game1Name));
+        JsonObject game1 = serverFacade.createGame(authAToken, game1Name);
+        serverFacade.joinGame(authAToken, "BLACK", game1.get("gameID").getAsInt());
+        expectedList.add(new PrintedGameData(game1.get("gameID").getAsInt(), null, authAUsername, game1Name));
 
 
         String game2Name = "Lonely";
-        CreateGameResult game2 = serverFacade.createGame(new CreateGameRequest(authB.authToken(), game2Name));
-        serverFacade.joinGame(new JoinGameRequest(authB.authToken(), ChessGame.TeamColor.WHITE, game2.gameID()));
-        expectedList.add(new PrintedGameData(game2.gameID(), authB.username(), null, game2Name));
+        JsonObject game2 = serverFacade.createGame(authBToken, game2Name);
+        serverFacade.joinGame(authBToken, "WHITE", game2.get("gameID").getAsInt());
+        expectedList.add(new PrintedGameData(game2.get("gameID").getAsInt(), authBUsername, null, game2Name));
 
 
         String game3Name = "GG";
-        CreateGameResult game3 = serverFacade.createGame(new CreateGameRequest(authC.authToken(), game3Name));
-        serverFacade.joinGame(new JoinGameRequest(authC.authToken(), ChessGame.TeamColor.WHITE, game3.gameID()));
-        serverFacade.joinGame(new JoinGameRequest(authA.authToken(), ChessGame.TeamColor.BLACK, game3.gameID()));
-        expectedList.add(new PrintedGameData(game3.gameID(), authC.username(), authA.username(), game3Name));
+        JsonObject game3 = serverFacade.createGame(authCToken, game3Name);
+        int game3ID = game3.get("gameID").getAsInt();
+        serverFacade.joinGame(authCToken, "WHITE", game3ID);
+        serverFacade.joinGame(authAToken, "BLACK", game3ID);
+        expectedList.add(new PrintedGameData(game3ID, authCUsername, authAUsername, game3Name));
 
 
         String game4Name = "All by myself";
-        CreateGameResult game4 = serverFacade.createGame(new CreateGameRequest(authC.authToken(), game4Name));
-        serverFacade.joinGame(new JoinGameRequest(authC.authToken(), ChessGame.TeamColor.WHITE, game4.gameID()));
-        serverFacade.joinGame(new JoinGameRequest(authC.authToken(), ChessGame.TeamColor.BLACK, game4.gameID()));
-        expectedList.add(new PrintedGameData(game4.gameID(), authC.username(), authC.username(), game4Name));
+        JsonObject game4 = serverFacade.createGame(authCToken, game4Name);
+        int game4ID = game4.get("gameID").getAsInt();
+        serverFacade.joinGame(authCToken, "WHITE", game4ID);
+        serverFacade.joinGame(authCToken, "BLACK", game4ID);
+        expectedList.add(new PrintedGameData(game4ID, authCUsername, authCUsername, game4Name));
 
 
-        ListGamesResult listResult = serverFacade.listGames(new ListGamesRequest(existingAuth));
+        JsonObject listResult = serverFacade.listGames(existingAuth);
         assertHttpOk(serverFacade.getStatusCode());
-        Collection<PrintedGameData> returnedList = listResult.games();
+        Type collectionType = new TypeToken<Collection<PrintedGameData>>(){}.getType();
+
+        Collection<PrintedGameData> returnedList = new Gson().fromJson(listResult.get("games"), collectionType);
 
         for (PrintedGameData data : returnedList) {
             boolean inList = false;
@@ -338,43 +344,46 @@ public class ServerFacadeTests {
     @DisplayName("Unique Authtoken Each Login")
     public void uniqueAuthorizationTokens() {
         Assertions.assertDoesNotThrow(() -> {
-            LoginResult loginOne = serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password()));
+            JsonObject loginOne = serverFacade.login(existingUser.username(), existingUser.password());
             assertHttpOk(serverFacade.getStatusCode());
 
-            Assertions.assertNotNull(loginOne.authToken(),
+            Assertions.assertNotNull(loginOne.get("authToken").getAsString(),
                     "Login result did not contain an authToken");
 
-            LoginResult loginTwo = serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password()));
+            JsonObject loginTwo = serverFacade.login(existingUser.username(), existingUser.password());
             assertHttpOk(serverFacade.getStatusCode());
 
-            Assertions.assertNotNull(loginTwo.authToken(),
+            Assertions.assertNotNull(loginTwo.get("authToken").getAsString(),
                     "Login result did not contain an authToken");
-            Assertions.assertNotEquals(existingAuth, loginOne.authToken(),
+            Assertions.assertNotEquals(existingAuth, loginOne.get("authToken").getAsString(),
                     "Authtoken returned by login matched authtoken from prior register");
-            Assertions.assertNotEquals(existingAuth, loginTwo.authToken(),
+            Assertions.assertNotEquals(existingAuth, loginTwo.get("authToken").getAsString(),
                     "Authtoken returned by login matched authtoken from prior register");
-            Assertions.assertNotEquals(loginOne.authToken(), loginTwo.authToken(),
+            Assertions.assertNotEquals(loginOne.get("authToken").getAsString(), loginTwo.get("authToken").getAsString(),
                     "Authtoken returned by login matched authtoken from prior login");
 
 
-            CreateGameResult createResult = serverFacade.createGame(createRequest);
+            JsonObject createResult = serverFacade.createGame(existingAuth, createRequest);
             assertHttpOk(serverFacade.getStatusCode());
 
 
-            serverFacade.logout(new LogoutRequest(existingAuth));
+            serverFacade.logout(existingAuth);
             assertHttpOk(serverFacade.getStatusCode());
 
 
-            JoinGameRequest joinRequest = new JoinGameRequest(loginOne.authToken(), ChessGame.TeamColor.WHITE, createResult.gameID());
-            serverFacade.joinGame(joinRequest);
+            serverFacade.joinGame(loginOne.get("authToken").getAsString(), "WHITE", createResult.get("gameID").getAsInt());
             assertHttpOk(serverFacade.getStatusCode());
 
 
-            ListGamesResult listResult = serverFacade.listGames(new ListGamesRequest(loginTwo.authToken()));
+            JsonObject listResult = serverFacade.listGames(loginTwo.get("authToken").getAsString());
             assertHttpOk(serverFacade.getStatusCode());
 
-            Assertions.assertEquals(1, listResult.games().size());
-            Assertions.assertEquals(existingUser.username(), listResult.games().iterator().next().whiteUsername());
+            Type collectionType = new TypeToken<Collection<PrintedGameData>>(){}.getType();
+
+            Collection<PrintedGameData> listedGames = new Gson().fromJson(listResult.get("games"), collectionType);
+
+            Assertions.assertEquals(1, listedGames.size());
+            Assertions.assertEquals(existingUser.username(), listedGames.iterator().next().whiteUsername());
         });
     }
 
@@ -383,36 +392,41 @@ public class ServerFacadeTests {
     @DisplayName("Clear Test")
     public void clearData() {
         Assertions.assertDoesNotThrow(() -> {
-            serverFacade.createGame(new CreateGameRequest(existingAuth, "Mediocre game"));
-            serverFacade.createGame(new CreateGameRequest(existingAuth, "Awesome game"));
+            serverFacade.createGame(existingAuth, "Mediocre game");
+            serverFacade.createGame(existingAuth, "Awesome game");
 
             UserData user = new UserData("ClearMe", "cleared", "clear@mail.com");
-            RegisterResult registerResult = serverFacade.register(new RegisterRequest(user.username(), user.password(), user.email()));
+            JsonObject registerResult = serverFacade.register(user);
 
-            CreateGameResult createResult = serverFacade.createGame(new CreateGameRequest(registerResult.authToken(), "Clear game"));
+            JsonObject createResult = serverFacade.createGame(registerResult.get("authToken").getAsString(), "Clear game");
 
-            JoinGameRequest joinRequest = new JoinGameRequest(registerResult.authToken(), ChessGame.TeamColor.WHITE, createResult.gameID());
-            serverFacade.joinGame(joinRequest);
+            serverFacade.joinGame(registerResult.get("authToken").getAsString(), "WHITE", createResult.get("gameID").getAsInt());
 
             serverFacade.clear();
             assertHttpOk(serverFacade.getStatusCode());
 
-            ResponseException loginE = Assertions.assertThrows(ResponseException.class, () -> serverFacade.login(new LoginRequest(existingUser.username(), existingUser.password())));
+            ResponseException loginE = Assertions.assertThrows(ResponseException.class, () -> {
+                serverFacade.login(existingUser.username(), existingUser.password());
+            });
 
             Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, loginE.StatusCode());
             Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
 
-            ResponseException listE = Assertions.assertThrows(ResponseException.class, () ->serverFacade.listGames(new ListGamesRequest(existingAuth)));
+            ResponseException listE = Assertions.assertThrows(ResponseException.class, () ->serverFacade.listGames(existingAuth));
             Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, listE.StatusCode());
             Assertions.assertTrue(listE.getMessage().contains("unauthorized"));
 
-            registerResult = serverFacade.register(new RegisterRequest(user.username(), user.password(), user.email()));
+            registerResult = serverFacade.register(user);
             assertHttpOk(serverFacade.getStatusCode());
 
-            ListGamesResult listResult = serverFacade.listGames(new ListGamesRequest(registerResult.authToken()));
+            JsonObject listResult = serverFacade.listGames(registerResult.get("authToken").getAsString());
             assertHttpOk(serverFacade.getStatusCode());
 
-            Assertions.assertEquals(0, listResult.games().size(), "list result did not return 0 games after clear");
+            Type collectionType = new TypeToken<Collection<PrintedGameData>>(){}.getType();
+
+            Collection<PrintedGameData> gameList = new Gson().fromJson(listResult.get("games"), collectionType);
+
+            Assertions.assertEquals(gameList.size(), 0, "list result did not return 0 games after clear");
         });
     }
 

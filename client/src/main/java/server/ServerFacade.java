@@ -2,14 +2,8 @@ package server;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import dataaccess.AuthDataAccess;
-import dataaccess.GameDataAccess;
-import dataaccess.UserDataAccess;
-import service.requests.*;
-import service.results.CreateGameResult;
-import service.results.ListGamesResult;
-import service.results.LoginResult;
-import service.results.RegisterResult;
+import model.UserData;
+
 import ui.ResponseException;
 
 import java.io.IOException;
@@ -24,52 +18,53 @@ public class ServerFacade {
   private final String serverURL;
   private int statusCode = 200;
 
-  public UserDataAccess userDAO;
-  public AuthDataAccess authDAO;
-  public GameDataAccess gameDAO;
-
   public ServerFacade(String url) { serverURL = url; }
 
-  public void setUserDAO(UserDataAccess userDAO) {
-    this.userDAO=userDAO;
-  }
-
-  public void setAuthDAO(AuthDataAccess authDAO) {
-    this.authDAO=authDAO;
-  }
-
-  public void setGameDAO(GameDataAccess gameDAO) {
-    this.gameDAO=gameDAO;
-  }
-
-  public RegisterResult register(RegisterRequest req) throws ResponseException {
+  public JsonObject register(UserData user) throws ResponseException {
     String path = "/user";
-    return this.makeRequest("POST", path, req, RegisterResult.class);
+    return this.makeRequest("POST", path, user, JsonObject.class);
   }
 
-  public LoginResult login(LoginRequest req) throws ResponseException {
+  public JsonObject login(String username, String password) throws ResponseException {
     String path = "/session";
-    return this.makeRequest("POST", path, req, LoginResult.class);
+    JsonObject data = new JsonObject();
+    data.addProperty("username", username);
+    data.addProperty("password", password);
+    return this.makeRequest("POST", path, data, JsonObject.class);
   }
 
-  public void logout(LogoutRequest req) throws ResponseException {
+  public void logout(String authToken) throws ResponseException {
     String path = "/session";
-    this.makeRequest("DELETE", path, req, null);
+    JsonObject data = new JsonObject();
+    data.addProperty("authToken", authToken);
+    this.makeRequest("DELETE", path, data, null);
   }
 
-  public ListGamesResult listGames(ListGamesRequest req) throws ResponseException{
+  public JsonObject listGames(String authToken) throws ResponseException{
     String path = "/game";
-    return this.makeRequest("GET", path, req, ListGamesResult.class);
+    JsonObject data = new JsonObject();
+    data.addProperty("authToken", authToken);
+    return this.makeRequest("GET", path, data, JsonObject.class);
   }
 
-  public CreateGameResult createGame(CreateGameRequest req) throws  ResponseException {
+  public JsonObject createGame(String authToken, String gameName) throws  ResponseException {
     String path = "/game";
-    return this.makeRequest("POST", path, req, CreateGameResult.class);
+    JsonObject data = new JsonObject();
+    data.addProperty("authToken", authToken);
+    data.addProperty("gameName", gameName);
+    return this.makeRequest("POST", path, data, JsonObject.class);
   }
 
-  public void joinGame(JoinGameRequest req) throws ResponseException {
+  public void joinGame(String authToken, String playerColor, int gameID) throws ResponseException {
     String path = "/game";
-    this.makeRequest("PUT", path, req, null);
+    JsonObject data = new JsonObject();
+    if (playerColor != null) {
+      playerColor=playerColor.toUpperCase();
+    }
+    data.addProperty("authToken", authToken);
+    data.addProperty("playerColor", playerColor);
+    data.addProperty("gameID", gameID);
+    this.makeRequest("PUT", path, data, null);
   }
 
   public void clear() throws ResponseException {
@@ -77,7 +72,7 @@ public class ServerFacade {
     this.makeRequest("DELETE", path, null, null);
   }
 
-  private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws ResponseException {
+  private <T> T makeRequest(String method, String path, Object data, Class<T> responseClass) throws ResponseException {
     try {
       URL url=(new URI(serverURL + path)).toURL();
       HttpURLConnection http=(HttpURLConnection) url.openConnection();
@@ -86,7 +81,7 @@ public class ServerFacade {
         http.setDoOutput(true);
       }
 
-      writeBody(request, http);
+      writeBody(data, http);
 
       http.connect();
       throwIfNotSuccessful(http);
@@ -96,10 +91,10 @@ public class ServerFacade {
     }
   }
 
-  private static void writeBody(Object request, HttpURLConnection http) throws IOException {
-    if (request != null) {
+  private static void writeBody(Object data, HttpURLConnection http) throws IOException {
+    if (data != null) {
       http.addRequestProperty("Content-Type", "application/json");
-      String reqData = new Gson().toJson(request);
+      String reqData = new Gson().toJson(data);
       if (reqData.contains("authToken")) {
 
         JsonObject json = new Gson().fromJson(reqData, JsonObject.class);
