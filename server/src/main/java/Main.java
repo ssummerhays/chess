@@ -6,7 +6,7 @@ import service.UserService;
 public class Main {
     public static void main(String[] args) {
         try {
-            var port=8080;
+            var port=0;
             if (args.length > 1) {
                 port=Integer.parseInt(args[0]);
             }
