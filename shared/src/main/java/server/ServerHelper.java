@@ -1,5 +1,7 @@
 package server;
 
+import server.Server;
+
 public class ServerHelper {
   Server server;
 
