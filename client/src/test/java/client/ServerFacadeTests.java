@@ -7,7 +7,7 @@ import model.PrintedGameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
-import serverFacade.ServerFacade;
+import serverfacade.ServerFacade;
 
 import ui.ResponseException;
 
@@ -76,7 +76,7 @@ public class ServerFacadeTests {
             serverFacade.login(newUser.username(), newUser.password());
             Assertions.fail();
         } catch (ResponseException e) {
-            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode(),
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.statusCode(),
                     "Server response code was not 401");
             Assertions.assertTrue(e.getMessage().contains("unauthorized"));
         }
@@ -103,7 +103,7 @@ public class ServerFacadeTests {
             serverFacade.register(existingUser);
             Assertions.fail();
         } catch (ResponseException e) {
-            Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.StatusCode());
+            Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.statusCode());
             Assertions.assertTrue(e.getMessage().contains("already taken"));
         }
     }
@@ -117,7 +117,7 @@ public class ServerFacadeTests {
             serverFacade.register(badData);
             Assertions.fail();
         } catch (ResponseException e) {
-            Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
+            Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.statusCode());
             Assertions.assertTrue(e.getMessage().contains("bad request"));
         }
     }
@@ -140,7 +140,7 @@ public class ServerFacadeTests {
 
         ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.logout(existingAuth));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.statusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
@@ -162,7 +162,7 @@ public class ServerFacadeTests {
 
         ResponseException e = Assertions.assertThrows(ResponseException.class, () -> serverFacade.createGame(existingAuth, createRequest));
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.statusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
@@ -205,7 +205,7 @@ public class ServerFacadeTests {
             serverFacade.joinGame(existingAuth + "badStuff", "WHITE", createResult.get("gameID").getAsInt());
         });
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.StatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, e.statusCode());
         Assertions.assertTrue(e.getMessage().contains("unauthorized"));
     }
 
@@ -219,7 +219,7 @@ public class ServerFacadeTests {
             serverFacade.joinGame(existingAuth, null, createResult.get("gameID").getAsInt());
         });
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.statusCode());
         Assertions.assertTrue(e.getMessage().contains("bad request"));
     }
 
@@ -233,7 +233,7 @@ public class ServerFacadeTests {
             serverFacade.joinGame(existingAuth, "white", -1);
         });
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.StatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_BAD_REQUEST, e.statusCode());
         Assertions.assertTrue(e.getMessage().contains("bad request"));
     }
 
@@ -251,7 +251,7 @@ public class ServerFacadeTests {
             serverFacade.joinGame(registerResult.get("authToken").getAsString(), "BLACK", createResult.get("gameID").getAsInt());
         });
 
-        Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.StatusCode());
+        Assertions.assertEquals(HttpURLConnection.HTTP_FORBIDDEN, e.statusCode());
         Assertions.assertTrue(e.getMessage().contains("already taken"));
     }
 
@@ -409,11 +409,11 @@ public class ServerFacadeTests {
                 serverFacade.login(existingUser.username(), existingUser.password());
             });
 
-            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, loginE.StatusCode());
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, loginE.statusCode());
             Assertions.assertTrue(loginE.getMessage().contains("unauthorized"));
 
             ResponseException listE = Assertions.assertThrows(ResponseException.class, () ->serverFacade.listGames(existingAuth));
-            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, listE.StatusCode());
+            Assertions.assertEquals(HttpURLConnection.HTTP_UNAUTHORIZED, listE.statusCode());
             Assertions.assertTrue(listE.getMessage().contains("unauthorized"));
 
             registerResult = serverFacade.register(user);

@@ -8,7 +8,7 @@ import com.google.gson.reflect.TypeToken;
 
 import model.PrintedGameData;
 import model.UserData;
-import serverFacade.ServerFacade;
+import serverfacade.ServerFacade;
 
 import java.lang.reflect.Type;
 import java.util.Arrays;
