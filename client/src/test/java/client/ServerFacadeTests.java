@@ -7,7 +7,7 @@ import model.PrintedGameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
-import server.ServerFacade;
+import serverFacade.ServerFacade;
 
 import ui.ResponseException;
 
