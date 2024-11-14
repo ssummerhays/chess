@@ -13,14 +13,6 @@
 
     <packaging>jar</packaging>
 
-    <dependencies>
-        <dependency>
-            <groupId>edu.byu.cs240</groupId>
-            <artifactId>server</artifactId>
-            <version>1.0</version>
-        </dependency>
-    </dependencies>
-
     <build>
         <finalName>shared</finalName>
         <plugins>
