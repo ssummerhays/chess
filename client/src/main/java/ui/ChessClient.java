@@ -157,6 +157,11 @@ public class ChessClient {
       int listNum = Integer.parseInt(params[0]);
       var teamColorStr = params[1];
 
+      if (listNum <= 0) {
+        throw new ResponseException(400, "GameID must be greater than 0");
+      } else if (listNum > gameListArray.length) {
+        throw new ResponseException(400, "No game with this id exists");
+      }
       PrintedGameData gameData = gameListArray[listNum - 1];
       int gameID = gameData.gameID();
 
@@ -180,6 +185,11 @@ public class ChessClient {
         throw new ResponseException(400, "GameID must be an integer");
       }
       int gameID = Integer.parseInt(params[0]);
+      if (gameID <= 0) {
+        throw new ResponseException(400, "GameID must be greater than 0");
+      } else if (gameID > gameListArray.length) {
+        throw new ResponseException(400, "No game with this id exists");
+      }
       return printGame(gameID, ChessGame.TeamColor.WHITE) + printGame(gameID, ChessGame.TeamColor.BLACK);
     }
     throw new ResponseException(400, "Expected: <gameID>");
