@@ -58,6 +58,14 @@ public class ChessClient {
               EscapeSequences.SET_TEXT_COLOR_BLUE + "login <USERNAME> <PASSWORD> " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- to play chess\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "quit " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- playing chess\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "help " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n";
+    } else if (state == State.IN_GAME) {
+      return "redraw " + SET_TEXT_COLOR_MAGENTA + "- the chessboard\n" +
+              EscapeSequences.SET_TEXT_COLOR_BLUE + "leave " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- the game\n" +
+              EscapeSequences.SET_TEXT_COLOR_BLUE + "highlight " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- legal moves\n" +
+              EscapeSequences.SET_TEXT_COLOR_BLUE + "move <ChessMove> " + EscapeSequences.SET_TEXT_COLOR_MAGENTA +
+              "- make a move <starting_square ending_square>\n" +
+              EscapeSequences.SET_TEXT_COLOR_BLUE + "resign " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- a game\n" +
+              EscapeSequences.SET_TEXT_COLOR_BLUE + "help " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n";
     }
     return "create <NAME> " + SET_TEXT_COLOR_MAGENTA + "- a game\n" +
             EscapeSequences.SET_TEXT_COLOR_BLUE + "list " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + " games\n" +
@@ -173,6 +181,7 @@ public class ChessClient {
 
       serverFacade.joinGame(authToken, teamColorStr, gameID);
 
+      state = State.IN_GAME;
       return printGame(gameID, teamColor) + printGame(gameID, oppositeColor);
     }
     throw new ResponseException(400, "Expected: <gameID> [WHITE|BLACK]");
@@ -190,6 +199,7 @@ public class ChessClient {
       } else if (gameID > gameListArray.length) {
         throw new ResponseException(400, "No game with this id exists");
       }
+      state = State.IN_GAME;
       return printGame(gameID, ChessGame.TeamColor.WHITE) + printGame(gameID, ChessGame.TeamColor.BLACK);
     }
     throw new ResponseException(400, "Expected: <gameID>");
