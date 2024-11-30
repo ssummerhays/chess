@@ -45,6 +45,7 @@ public class ChessClient {
         case "list" -> listGames();
         case "join" -> joinGamePlayer(params);
         case "observe" -> observeGame(params);
+        case "leave" -> leaveGame();
         default -> help();
       };
     } catch (Exception e) {
@@ -203,6 +204,15 @@ public class ChessClient {
       return printGame(gameID, ChessGame.TeamColor.WHITE) + printGame(gameID, ChessGame.TeamColor.BLACK);
     }
     throw new ResponseException(400, "Expected: <gameID>");
+  }
+
+  public String leaveGame() throws ResponseException {
+    assertLoggedIn();
+    if (state != State.IN_GAME) {
+      state = State.LOGGED_IN;
+      return "Successfully left game. Type help for more commands";
+    }
+    throw new ResponseException(400, "Error: not in game");
   }
 
   private void assertLoggedIn() throws ResponseException {
