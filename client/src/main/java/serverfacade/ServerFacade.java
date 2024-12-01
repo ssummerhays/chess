@@ -67,6 +67,18 @@ public class ServerFacade {
     this.makeRequest("PUT", path, data, null);
   }
 
+  public void leaveGamePlayer(String authToken, String playerColor, int gameID) throws ResponseException {
+    String path = "/game";
+    JsonObject data = new JsonObject();
+    if (playerColor != null) {
+      playerColor = playerColor.toUpperCase();
+    }
+    data.addProperty("authToken", authToken);
+    data.addProperty("playerColor", playerColor);
+    data.addProperty("gameID", gameID);
+    this.makeRequest("DELETE", path, data, null);
+  }
+
   public void clear() throws ResponseException {
     String path = "/db";
     this.makeRequest("DELETE", path, null, null);

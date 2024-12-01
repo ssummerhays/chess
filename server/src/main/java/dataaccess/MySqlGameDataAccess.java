@@ -3,11 +3,11 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
-import model.PrintedGameData;
 
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Objects;
 
 public class MySqlGameDataAccess implements GameDataAccess {
   int gameID = 1;
@@ -36,21 +36,23 @@ public class MySqlGameDataAccess implements GameDataAccess {
       throw new DataAccessException("Unable to configure database");
     }
   }
-  public Collection<PrintedGameData> getGames() throws DataAccessException {
+  public Collection<GameData> getGames() throws DataAccessException {
     try (var conn = DatabaseManager.getConnection()) {
       String statement = "SELECT * FROM gameData";
       try (var preparedStatement = conn.prepareStatement(statement)) {
-        Collection<PrintedGameData> printedGameDataList = new HashSet<>();
+        Collection<GameData> resultGameDataList = new HashSet<>();
         var rs = preparedStatement.executeQuery();
         while (rs.next()) {
           int gameID = rs.getInt(1);
           String whiteUsername = rs.getString(2);
           String blackUserName = rs.getString(3);
           String gameName = rs.getString(4);
-          PrintedGameData printedGameData = new PrintedGameData(gameID, whiteUsername, blackUserName, gameName);
-          printedGameDataList.add(printedGameData);
+          String gameJSON = rs.getString(5);
+          ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
+          GameData printedGameData = new GameData(gameID, whiteUsername, blackUserName, gameName, game);
+          resultGameDataList.add(printedGameData);
         }
-        return printedGameDataList;
+        return resultGameDataList;
       }
     } catch (SQLException e) {
       throw new DataAccessException("Error: unauthorized");
@@ -131,6 +133,41 @@ public class MySqlGameDataAccess implements GameDataAccess {
           preparedStatement.executeUpdate();
         } else {
           throw new DataAccessException("Error: already taken");
+        }
+      }
+    } catch (SQLException e) {
+      if (e.getMessage().contains("Duplicate")) {
+        throw new DataAccessException("Error: already taken");
+      } else {
+        throw new DataAccessException("Error: bad request");
+      }
+    }
+  }
+
+  public void leaveGame(GameData gameData, String username, ChessGame.TeamColor teamColor) throws DataAccessException {
+    try (var conn = DatabaseManager.getConnection()) {
+      String whiteUsername;
+      String blackUsername;
+      String selectStatement = "SELECT whiteUsername, blackUsername FROM gameData WHERE gameID = ?";
+      try (var preparedSelectStatement = conn.prepareStatement(selectStatement)) {
+        preparedSelectStatement.setInt(1, gameData.gameID());
+        var rs = preparedSelectStatement.executeQuery();
+        rs.next();
+        whiteUsername = rs.getString(1);
+        blackUsername = rs.getString(2);
+      }
+
+      String statement = teamColor == ChessGame.TeamColor.WHITE?
+              "UPDATE gameData SET whiteUsername = ? WHERE gameID = ?" : "UPDATE gameData SET blackUsername = ? WHERE gameID = ?";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        preparedStatement.setString(1, null);
+        preparedStatement.setInt(2, gameData.gameID());
+        if (Objects.equals(whiteUsername, username) && teamColor == ChessGame.TeamColor.WHITE) {
+          preparedStatement.executeUpdate();
+        } else if (Objects.equals(blackUsername, username) && teamColor == ChessGame.TeamColor.BLACK) {
+          preparedStatement.executeUpdate();
+        } else {
+          throw new DataAccessException("Error: bad request");
         }
       }
     } catch (SQLException e) {

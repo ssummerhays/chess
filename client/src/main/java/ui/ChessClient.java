@@ -9,7 +9,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
 
 import model.GameData;
-import model.PrintedGameData;
 import model.UserData;
 import serverfacade.ServerFacade;
 
@@ -25,7 +24,7 @@ public class ChessClient {
   public ChessGame.TeamColor currentColor;
   public State state = State.LOGGED_OUT;
   private String authToken = null;
-  private PrintedGameData[] gameListArray;
+  private GameData[] gameListArray;
 
   public ChessClient(String serverURL) {
     serverFacade = new ServerFacade(serverURL);
@@ -123,6 +122,7 @@ public class ChessClient {
     if (params.length == 1) {
       String gameName = params[0];
       JsonObject res = serverFacade.createGame(authToken, gameName);
+      updateGameList();
       return String.format("Successfully created game: %s%s%s", SET_TEXT_COLOR_MAGENTA, gameName, SET_TEXT_COLOR_BLUE);
     }
     throw new ResponseException(400, "Expected: <gameName>");
@@ -130,20 +130,14 @@ public class ChessClient {
 
   public String listGames() throws ResponseException {
     assertLoggedIn();
-    JsonObject res = serverFacade.listGames(authToken);
-    Type collectionType = new TypeToken<Collection<PrintedGameData>>(){}.getType();
-
-    Collection<PrintedGameData> gameList = new Gson().fromJson(res.get("games"), collectionType);
-
-    gameListArray = gameList.toArray(new PrintedGameData[0]);
-    Arrays.sort(gameListArray, Comparator.comparingInt(PrintedGameData::gameID));
+    updateGameList();
 
     if (gameListArray.length == 0) {
       return SET_TEXT_COLOR_RED + "No active games right now." + SET_TEXT_COLOR_BLUE;
     }
     String result = "";
-    for (int i = 1; i <= gameList.size(); i++) {
-      PrintedGameData game = gameListArray[i - 1];
+    for (int i = 1; i <= gameListArray.length; i++) {
+      GameData game = gameListArray[i - 1];
       result += SET_TEXT_ITALIC + i + RESET_TEXT_ITALIC + ". " + game.gameName() + ": ";
       if (game.whiteUsername() != null && game.blackUsername() != null) {
         result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (white) vs " +
@@ -175,20 +169,20 @@ public class ChessClient {
       } else if (listNum > gameListArray.length) {
         throw new ResponseException(400, "No game with this id exists");
       }
-      PrintedGameData gameData = gameListArray[listNum - 1];
+      GameData gameData = gameListArray[listNum - 1];
       int gameID = gameData.gameID();
 
       if (!Objects.equals(teamColorStr, "white") && !teamColorStr.equals("black")) {
         throw new ResponseException(400, "Expected [WHITE|BLACK]");
       }
       ChessGame.TeamColor teamColor = (Objects.equals(teamColorStr, "white")) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-      ChessGame.TeamColor oppositeColor = (Objects.equals(teamColorStr, "white")) ? ChessGame.TeamColor.BLACK : ChessGame.TeamColor.WHITE;
 
       serverFacade.joinGame(authToken, teamColorStr, gameID);
 
       state = State.IN_GAME_PlAYER;
       currentGameID = gameID;
       currentColor = teamColor;
+      updateGameList();
       return printGame(gameID, teamColor);
     }
     throw new ResponseException(400, "Expected: <gameID> [WHITE|BLACK]");
@@ -215,6 +209,12 @@ public class ChessClient {
   public String leaveGame() throws ResponseException {
     assertLoggedIn();
     assertInGame();
+    if (state == State.IN_GAME_PlAYER) {
+      GameData gameData = gameListArray[currentGameID-1];
+      String color = (currentColor == ChessGame.TeamColor.WHITE)? "WHITE" : "BLACK";
+      serverFacade.leaveGamePlayer(authToken, color, gameData.gameID());
+      updateGameList();
+    }
     state = State.LOGGED_IN;
     return "Successfully left game. Type help for more commands";
   }
@@ -263,8 +263,20 @@ public class ChessClient {
     }
   }
 
-  private String printGame(int gameID, ChessGame.TeamColor color) {
-    ChessGame game = new ChessGame();
+  private void updateGameList() throws ResponseException {
+    JsonObject res = serverFacade.listGames(authToken);
+    Type collectionType = new TypeToken<Collection<GameData>>(){}.getType();
+
+    Collection<GameData> gameList = new Gson().fromJson(res.get("games"), collectionType);
+
+    gameListArray = gameList.toArray(new GameData[0]);
+    Arrays.sort(gameListArray, Comparator.comparingInt(GameData::gameID));
+  }
+
+  private String printGame(int gameID, ChessGame.TeamColor color) throws ResponseException{
+    updateGameList();
+    GameData gameData = gameListArray[gameID - 1];
+    ChessGame game = gameData.game();
     String firstLastRow = (color == ChessGame.TeamColor.WHITE)?
             SET_BG_COLOR_LIGHT_GREY + EMPTY + SET_TEXT_COLOR_BLACK + "  a" + EMPTY + " b" + EMPTY + " c" + EMPTY + " d" + EMPTY + " e" +
                     EMPTY + " f" + EMPTY + " g" + EMPTY + " h  " + EMPTY + RESET_BG_COLOR + "\n"
@@ -305,7 +317,9 @@ public class ChessClient {
   }
 
   private String printHighlighted(int gameID, ChessGame.TeamColor color, char letter, char number) throws ResponseException {
-    ChessGame game = new ChessGame();
+    updateGameList();
+    GameData gameData = gameListArray[gameID-1];
+    ChessGame game = gameData.game();
     String firstLastRow = (color == ChessGame.TeamColor.WHITE)?
             SET_BG_COLOR_LIGHT_GREY + EMPTY + SET_TEXT_COLOR_BLACK + "  a" + EMPTY + " b" + EMPTY + " c" + EMPTY + " d" + EMPTY + " e" +
                     EMPTY + " f" + EMPTY + " g" + EMPTY + " h  " + EMPTY + RESET_BG_COLOR + "\n"

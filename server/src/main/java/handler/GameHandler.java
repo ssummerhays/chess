@@ -7,6 +7,7 @@ import dataaccess.DataAccessException;
 import service.GameService;
 import service.requests.CreateGameRequest;
 import service.requests.JoinGameRequest;
+import service.requests.LeaveGameRequest;
 import service.requests.ListGamesRequest;
 import service.results.CreateGameResult;
 import service.results.ListGamesResult;
@@ -95,6 +96,45 @@ public class GameHandler {
 
       JoinGameRequest joinGameRequest= new JoinGameRequest(authToken, teamColor, gameID);
       service.joinGame(joinGameRequest);
+
+      res.type("application/json");
+      res.status(200);
+      return "{}";
+
+    } catch (DataAccessException e) {
+      return handleError(e, res);
+    }
+  }
+
+  public Object leaveGame(Request req, Response res) {
+    try {
+      JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
+      int gameID;
+      String playerColorString;
+      try {
+        playerColorString = body.get("playerColor").getAsString();
+        gameID = body.get("gameID").getAsInt();
+
+      } catch (Exception e) {
+        res.status(400);
+        res.type("application/json");
+        return "{\"message\": \"Error: bad request\"}";
+      }
+
+      ChessGame.TeamColor teamColor;
+      if (Objects.equals(playerColorString, "WHITE")) {
+        teamColor = ChessGame.TeamColor.WHITE;
+      } else if (Objects.equals(playerColorString, "BLACK")) {
+        teamColor = ChessGame.TeamColor.BLACK;
+      } else {
+        res.status(400);
+        res.type("application/json");
+        return "{\"message\": \"Error: bad request\"}";
+      }
+      String authToken = req.headers("Authorization");
+
+      LeaveGameRequest leaveGameRequest= new LeaveGameRequest(authToken, teamColor, gameID);
+      service.leaveGame(leaveGameRequest);
 
       res.type("application/json");
       res.status(200);

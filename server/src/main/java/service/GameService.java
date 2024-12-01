@@ -4,9 +4,9 @@ import chess.ChessGame;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
-import model.PrintedGameData;
 import service.requests.CreateGameRequest;
 import service.requests.JoinGameRequest;
+import service.requests.LeaveGameRequest;
 import service.requests.ListGamesRequest;
 import service.results.CreateGameResult;
 import service.results.ListGamesResult;
@@ -25,7 +25,7 @@ public class GameService {
     String authToken = listGamesRequest.authToken();
     AuthData authData = authDAO.getAuth(authToken);
 
-    Collection<PrintedGameData> gameDataList = gameDAO.getGames();
+    Collection<GameData> gameDataList = gameDAO.getGames();
     return new ListGamesResult(gameDataList);
   }
 
@@ -46,5 +46,16 @@ public class GameService {
     GameData gameData = gameDAO.getGame(gameID);
 
     gameDAO.joinGame(gameData, authData.username(), playerColor);
+  }
+
+  public void leaveGame(LeaveGameRequest leaveGameRequest) throws DataAccessException{
+    String authToken = leaveGameRequest.authToken();
+    ChessGame.TeamColor playerColor = leaveGameRequest.playerColor();
+    int gameID = leaveGameRequest.gameID();
+
+    AuthData authData = authDAO.getAuth(authToken);
+    GameData gameData = gameDAO.getGame(gameID);
+
+    gameDAO.leaveGame(gameData, authData.username(), playerColor);
   }
 }
