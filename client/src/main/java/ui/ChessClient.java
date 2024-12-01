@@ -49,6 +49,7 @@ public class ChessClient {
         case "observe" -> observeGame(params);
         case "leave" -> leaveGame();
         case "highlight" -> highlightMoves(params);
+        case "redraw" -> redrawBoard();
         default -> help();
       };
     } catch (Exception e) {
@@ -236,6 +237,12 @@ public class ChessClient {
     } else {
       throw new ResponseException(400, "Expected: <Position>");
     }
+  }
+
+  public String redrawBoard() throws ResponseException {
+    assertLoggedIn();
+    assertInGame();
+    return printGame(currentGameID, currentColor);
   }
 
   private void assertLoggedIn() throws ResponseException {
