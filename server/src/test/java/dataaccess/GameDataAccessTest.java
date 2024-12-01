@@ -3,7 +3,6 @@ package dataaccess;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
-import model.PrintedGameData;
 import org.junit.jupiter.api.*;
 
 import java.sql.SQLException;
@@ -19,8 +18,6 @@ class GameDataAccessTest {
   static ChessGame game2 = new ChessGame();
   GameData gameData1 = new GameData(1, "whiteUser", "blackUser", "game1", game1);
   GameData gameData2 = new GameData(2, null, null, "game2", game2);
-  PrintedGameData printedGameData1 = new PrintedGameData(1, "whiteUser", "blackUser", "game1");
-  PrintedGameData printedGameData2 = new PrintedGameData(2, null, null, "game2");
   @BeforeAll
   public static void init() throws DataAccessException {
     mySqlGameDAO = new MySqlGameDataAccess();
@@ -63,10 +60,10 @@ class GameDataAccessTest {
   @DisplayName("Positive getGames test")
   public void posGetGamesTest() {
     try {
-      Collection<PrintedGameData> expected = new HashSet<>();
-      expected.add(printedGameData1);
-      expected.add(printedGameData2);
-      Collection<PrintedGameData> actual = mySqlGameDAO.getGames();
+      Collection<GameData> expected = new HashSet<>();
+      expected.add(gameData1);
+      expected.add(gameData2);
+      Collection<GameData> actual = mySqlGameDAO.getGames();
       assertEquals(expected, actual);
     } catch (DataAccessException e) {
       fail();
