@@ -2,6 +2,7 @@ package serverfacade;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import model.GameData;
 import model.UserData;
 
 import ui.ResponseException;
@@ -77,6 +78,15 @@ public class ServerFacade {
     data.addProperty("playerColor", playerColor);
     data.addProperty("gameID", gameID);
     this.makeRequest("DELETE", path, data, null);
+  }
+
+  public void updateGame(String authToken, GameData gameData) throws ResponseException {
+    String path = "/move";
+    JsonObject data = new JsonObject();
+    String jsonGameData = new Gson().toJson(gameData);
+    data.addProperty("gameData", jsonGameData);
+    data.addProperty("authToken", authToken);
+    this.makeRequest("POST", path, data, null);
   }
 
   public void clear() throws ResponseException {
