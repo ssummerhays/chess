@@ -17,5 +17,7 @@ public interface GameDataAccess {
 
   void leaveGame(GameData gameData, String username, ChessGame.TeamColor teamColor) throws DataAccessException;
 
+  void updateGame(GameData gameData) throws DataAccessException;
+
   void deleteAllGames() throws DataAccessException;
 }
