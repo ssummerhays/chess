@@ -4,11 +4,9 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
+import model.GameData;
 import service.GameService;
-import service.requests.CreateGameRequest;
-import service.requests.JoinGameRequest;
-import service.requests.LeaveGameRequest;
-import service.requests.ListGamesRequest;
+import service.requests.*;
 import service.results.CreateGameResult;
 import service.results.ListGamesResult;
 import spark.Request;
@@ -135,6 +133,32 @@ public class GameHandler {
 
       LeaveGameRequest leaveGameRequest= new LeaveGameRequest(authToken, teamColor, gameID);
       service.leaveGame(leaveGameRequest);
+
+      res.type("application/json");
+      res.status(200);
+      return "{}";
+
+    } catch (DataAccessException e) {
+      return handleError(e, res);
+    }
+  }
+
+  public Object updateGame(Request req, Response res) {
+    try {
+      JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
+      String jsonGameData;
+      try {
+        jsonGameData = body.get("gameData").getAsString();
+      } catch (Exception e) {
+        res.status(400);
+        res.type("application/json");
+        return "{\"message\": \"Error: bad request\"}";
+      }
+
+      String authToken = req.headers("Authorization");
+
+      UpdateGameRequest updateGameRequest= new UpdateGameRequest(authToken, jsonGameData);
+      service.updateGame(updateGameRequest);
 
       res.type("application/json");
       res.status(200);
