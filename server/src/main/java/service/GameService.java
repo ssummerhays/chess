@@ -1,13 +1,11 @@
 package service;
 
 import chess.ChessGame;
+import com.google.gson.Gson;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
-import service.requests.CreateGameRequest;
-import service.requests.JoinGameRequest;
-import service.requests.LeaveGameRequest;
-import service.requests.ListGamesRequest;
+import service.requests.*;
 import service.results.CreateGameResult;
 import service.results.ListGamesResult;
 
@@ -57,5 +55,15 @@ public class GameService {
     GameData gameData = gameDAO.getGame(gameID);
 
     gameDAO.leaveGame(gameData, authData.username(), playerColor);
+  }
+
+  public void updateGame(UpdateGameRequest updateGameRequest) throws DataAccessException{
+    String authToken = updateGameRequest.authToken();
+    AuthData authData = authDAO.getAuth(authToken);
+
+    String jsonGameData = updateGameRequest.jsonGameData();
+    GameData gameData = new Gson().fromJson(jsonGameData, GameData.class);
+
+    gameDAO.updateGame(gameData);
   }
 }
