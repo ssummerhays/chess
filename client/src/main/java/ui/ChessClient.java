@@ -1,9 +1,6 @@
 package ui;
 
-import chess.ChessGame;
-import chess.ChessMove;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.reflect.TypeToken;
@@ -49,6 +46,7 @@ public class ChessClient {
         case "leave" -> leaveGame();
         case "highlight" -> highlightMoves(params);
         case "redraw" -> redrawBoard();
+        case "move" -> makeMove(params);
         default -> help();
       };
     } catch (Exception e) {
@@ -67,7 +65,7 @@ public class ChessClient {
               EscapeSequences.SET_TEXT_COLOR_BLUE + "leave " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- the game\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "highlight " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- legal moves\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "move <ChessMove> " + EscapeSequences.SET_TEXT_COLOR_MAGENTA +
-              "- make a move <starting_square ending_square>\n" +
+              "- make a move <starting_square ending_square promotion_piece?>\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "resign " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- a game\n" +
               EscapeSequences.SET_TEXT_COLOR_BLUE + "help " + EscapeSequences.SET_TEXT_COLOR_MAGENTA + "- with possible commands\n";
     }
@@ -217,6 +215,89 @@ public class ChessClient {
     }
     state = State.LOGGED_IN;
     return "Successfully left game. Type help for more commands";
+  }
+
+  public String makeMove(String... params) throws ResponseException {
+    assertLoggedIn();
+    assertPlayer();
+    if (params.length == 2 || params.length == 3) {
+      String start = params[0];
+      char startLetter = start.charAt(0);
+      int startCol;
+      switch (startLetter) {
+        case 'h' -> startCol = 8;
+        case 'g' -> startCol = 7;
+        case 'f' -> startCol = 6;
+        case 'e' -> startCol = 5;
+        case 'd' -> startCol = 4;
+        case 'c' -> startCol = 3;
+        case 'b' -> startCol = 2;
+        case 'a' -> startCol = 1;
+        default -> startCol = -1;
+      }
+      int startRow = Character.getNumericValue(start.charAt(1));
+      if (startCol == -1 || startRow < 1 || startRow > 8) {
+        throw new ResponseException(400,"Error: invalid starting position");
+      }
+      ChessPosition startingPosition = new ChessPosition(startRow, startCol);
+
+      String end = params[1];
+      char endLetter = end.charAt(0);
+      int endCol;
+      switch (endLetter) {
+        case 'h' -> endCol = 8;
+        case 'g' -> endCol = 7;
+        case 'f' -> endCol = 6;
+        case 'e' -> endCol = 5;
+        case 'd' -> endCol = 4;
+        case 'c' -> endCol = 3;
+        case 'b' -> endCol = 2;
+        case 'a' -> endCol = 1;
+        default -> endCol = -1;
+      }
+      int endRow = Character.getNumericValue(end.charAt(1));
+      if (endCol == -1 || endRow < 1 || endRow > 8) {
+        throw new ResponseException(400,"Error: invalid ending position");
+      }
+      ChessPosition endPosition = new ChessPosition(endRow, endCol);
+
+      ChessMove move;
+
+      if (params.length == 3) {
+        String promotionStr = params[2].toLowerCase();
+        ChessPiece.PieceType type;
+        switch (promotionStr) {
+          case "queen" -> type = ChessPiece.PieceType.QUEEN;
+          case "rook" -> type = ChessPiece.PieceType.ROOK;
+          case "bishop" -> type = ChessPiece.PieceType.BISHOP;
+          case "knight" -> type = ChessPiece.PieceType.KNIGHT;
+          default -> type = null;
+        }
+        if (type == null) {
+          throw new ResponseException(400, "Error: invalid promotion piece");
+        }
+        move = new ChessMove(startingPosition, endPosition, type);
+      } else {
+        move = new ChessMove(startingPosition, endPosition, null);
+      }
+
+      GameData gameData = gameListArray[currentGameID - 1];
+      ChessGame game = gameData.game();
+      ChessBoard board = game.getBoard();
+      ChessPiece piece = board.getPiece(startingPosition);
+      if (piece == null) {
+        throw new ResponseException(400, "Error: Starting position has no piece");
+      }
+      try {
+        game.makeMove(move);
+      } catch (InvalidMoveException e) {
+        throw new ResponseException(400, "Error: out of turn or invalid move");
+      }
+      GameData data = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+      serverFacade.updateGame(authToken, data);
+      return printGame(currentGameID, currentColor);
+    }
+    throw new ResponseException(400, "Error: expected <startingPosition endingPosition promotionPiece?>");
   }
 
   public String highlightMoves(String... params) throws ResponseException {
