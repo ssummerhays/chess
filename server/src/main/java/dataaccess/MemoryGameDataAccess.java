@@ -86,6 +86,21 @@ public class MemoryGameDataAccess implements GameDataAccess {
     }
   }
 
+  public void updateGame(GameData gameData) throws DataAccessException {
+    GameData originalGameData = new GameData(-1, null, null, "noGame", new ChessGame());
+    for (GameData oldGameData : gameDataList) {
+      if (oldGameData.gameID() == gameData.gameID()) {
+        originalGameData = oldGameData;
+      }
+    }
+    if (originalGameData.gameID() == -1) {
+      throw new DataAccessException("Error: bad request");
+    }
+
+    gameDataList.remove(originalGameData);
+    gameDataList.add(gameData);
+  }
+
   public void deleteAllGames() {
     gameDataList.clear();
   }
