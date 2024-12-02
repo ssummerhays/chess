@@ -179,6 +179,26 @@ public class MySqlGameDataAccess implements GameDataAccess {
     }
   }
 
+  public void updateGame(GameData gameData) throws DataAccessException {
+    try (var conn = DatabaseManager.getConnection()) {
+
+      String statement = "UPDATE gameData SET gameJSON = ? WHERE gameID = ?";
+      try (var preparedStatement = conn.prepareStatement(statement)) {
+        ChessGame game = gameData.game();
+        String gameJSON = new Gson().toJson(game, ChessGame.class);
+        preparedStatement.setString(1, gameJSON);
+        preparedStatement.setInt(2, gameData.gameID());
+        preparedStatement.executeUpdate();
+      }
+    } catch (SQLException e) {
+      if (e.getMessage().contains("Duplicate")) {
+        throw new DataAccessException("Error: already taken");
+      } else {
+        throw new DataAccessException("Error: bad request");
+      }
+    }
+  }
+
   public void deleteAllGames() throws DataAccessException {
     try (var conn = DatabaseManager.getConnection()) {
       String statement = "TRUNCATE gameData";
