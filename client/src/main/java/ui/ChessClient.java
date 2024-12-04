@@ -122,6 +122,7 @@ public class ChessClient {
 
   public String createGame(String... params) throws ResponseException {
     assertLoggedIn();
+    assertNotInGame();
     if (params.length == 1) {
       String gameName = params[0];
       JsonObject res = serverFacade.createGame(authToken, gameName);
@@ -133,6 +134,7 @@ public class ChessClient {
 
   public String listGames() throws ResponseException {
     assertLoggedIn();
+    assertNotInGame();
     updateGameList();
 
     if (gameListArray.length == 0) {
@@ -160,6 +162,7 @@ public class ChessClient {
 
   public String joinGamePlayer(String... params) throws ResponseException {
     assertLoggedIn();
+    assertNotInGame();
     if (params.length == 2) {
       if (!params[0].matches("\\d+")) {
         throw new ResponseException(400, "GameID must be an integer");
@@ -179,16 +182,18 @@ public class ChessClient {
         throw new ResponseException(400, "Expected [WHITE|BLACK]");
       }
       ChessGame.TeamColor teamColor = (Objects.equals(teamColorStr, "white")) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-      state = State.IN_GAME_PlAYER;
-      currentGameID = gameID;
-      currentColor = teamColor;
+
+      serverFacade.joinGame(authToken, teamColorStr, gameID);
       try {
-        serverFacade.joinGame(authToken, teamColorStr, gameID);
         ws = new WebSocketFacade(serverURL, notificationHandler);
         ws.connectToGame(authToken, gameID, teamColor);
       } catch (Exception e) {
-        throw new ResponseException(400, "Error connecting to WebSocket or joining game");
+        throw new ResponseException(400, "Error connecting to WebSocket");
       }
+
+      state = State.IN_GAME_PlAYER;
+      currentGameID = gameID;
+      currentColor = teamColor;
 
       updateGameList();
       return printGame(gameID, teamColor);
@@ -198,6 +203,7 @@ public class ChessClient {
 
   public String observeGame(String... params) throws ResponseException {
     assertLoggedIn();
+    assertNotInGame();
     if (params.length == 1) {
       if (!params[0].matches("\\d+")) {
         throw new ResponseException(400, "GameID must be an integer");
@@ -215,6 +221,7 @@ public class ChessClient {
         throw new ResponseException(400, "Error connecting to WebSocket");
       }
       state = State.IN_GAME_OBSERVER;
+      currentGameID = gameID;
       return printGame(gameID, ChessGame.TeamColor.WHITE);
     }
     throw new ResponseException(400, "Expected: <gameID>");
@@ -228,6 +235,12 @@ public class ChessClient {
       String color = (currentColor == ChessGame.TeamColor.WHITE)? "WHITE" : "BLACK";
       serverFacade.leaveGamePlayer(authToken, color, gameData.gameID());
       updateGameList();
+    }
+    try {
+      ws = new WebSocketFacade(serverURL, notificationHandler);
+      ws.leaveGame(authToken, currentGameID, currentColor);
+    } catch (Exception e) {
+      throw new ResponseException(400, "Error connecting to WebSocket");
     }
     state = State.LOGGED_IN;
     return "Successfully left game. Type help for more commands";
@@ -318,7 +331,7 @@ public class ChessClient {
 
   public String highlightMoves(String... params) throws ResponseException {
     assertLoggedIn();
-    assertPlayer();
+    assertInGame();
     if (params.length == 1) {
       String positionStr = params[0];
       if (positionStr.length() == 2) {
@@ -357,6 +370,12 @@ public class ChessClient {
   private void assertInGame() throws ResponseException {
     if (state != State.IN_GAME_PlAYER && state != State.IN_GAME_OBSERVER) {
       throw new ResponseException(400, "Error: you are not currently in a game");
+    }
+  }
+
+  private void assertNotInGame() throws ResponseException {
+    if (state == State.IN_GAME_PlAYER || state == State.IN_GAME_OBSERVER) {
+      throw new ResponseException(400, "Error: command not available while in game");
     }
   }
 

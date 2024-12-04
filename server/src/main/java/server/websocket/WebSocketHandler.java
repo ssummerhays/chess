@@ -34,6 +34,7 @@ public class WebSocketHandler {
 
     switch (command.getCommandType()) {
       case CONNECT -> connect(authToken, session, command.getGameID(), command.getColor());
+      case LEAVE -> leave(authToken, session, command.getGameID(), command.getColor());
     }
   }
 
@@ -51,6 +52,26 @@ public class WebSocketHandler {
       connections.add(authToken, session, gameID);
       Notification notification = new Notification("%s has joined the game as %s".formatted(username, colorStr));
       connections.broadcast(authToken, gameID, notification);
+    } catch (DataAccessException e) {
+      throw new IOException();
+    }
+  }
+
+  private void leave(String authToken, Session session, int gameID, ChessGame.TeamColor color) throws IOException {
+    try {
+      AuthData authData = authDAO.getAuth(authToken);
+      String username = authData.username();
+      String result;
+      if (color == null) {
+        result = "Observer %s has left the game".formatted(username);
+      } else if (color == ChessGame.TeamColor.WHITE) {
+        result = "White Player %s has left the game".formatted(username);
+      } else {
+        result = "Black Player %s has left the game".formatted(username);
+      }
+      Notification notification = new Notification(result);
+      connections.broadcast(authToken, gameID, notification);
+      connections.remove(authToken);
     } catch (DataAccessException e) {
       throw new IOException();
     }
