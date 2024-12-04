@@ -8,6 +8,8 @@ import com.google.gson.reflect.TypeToken;
 import model.GameData;
 import model.UserData;
 import serverfacade.ServerFacade;
+import websocket.NotificationHandler;
+import websocket.WebSocketFacade;
 
 import java.lang.reflect.Type;
 import java.util.*;
@@ -22,10 +24,13 @@ public class ChessClient {
   public State state = State.LOGGED_OUT;
   private String authToken = null;
   private GameData[] gameListArray;
+  private WebSocketFacade ws;
+  private final NotificationHandler notificationHandler;
 
-  public ChessClient(String serverURL) {
+  public ChessClient(String serverURL, NotificationHandler notificationHandler) {
     serverFacade = new ServerFacade(serverURL);
     this.serverURL = serverURL;
+    this.notificationHandler = notificationHandler;
   }
 
   public String eval(String input) {
@@ -174,12 +179,17 @@ public class ChessClient {
         throw new ResponseException(400, "Expected [WHITE|BLACK]");
       }
       ChessGame.TeamColor teamColor = (Objects.equals(teamColorStr, "white")) ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-
-      serverFacade.joinGame(authToken, teamColorStr, gameID);
-
       state = State.IN_GAME_PlAYER;
       currentGameID = gameID;
       currentColor = teamColor;
+      try {
+        serverFacade.joinGame(authToken, teamColorStr, gameID);
+        ws = new WebSocketFacade(serverURL, notificationHandler);
+        ws.connectToGame(authToken, gameID, teamColor);
+      } catch (Exception e) {
+        throw new ResponseException(400, "Error connecting to WebSocket or joining game");
+      }
+
       updateGameList();
       return printGame(gameID, teamColor);
     }
@@ -197,6 +207,12 @@ public class ChessClient {
         throw new ResponseException(400, "GameID must be greater than 0");
       } else if (gameID > gameListArray.length) {
         throw new ResponseException(400, "No game with this id exists");
+      }
+      try {
+        ws = new WebSocketFacade(serverURL, notificationHandler);
+        ws.connectToGame(authToken, gameID, null);
+      } catch (Exception e) {
+        throw new ResponseException(400, "Error connecting to WebSocket");
       }
       state = State.IN_GAME_OBSERVER;
       return printGame(gameID, ChessGame.TeamColor.WHITE);
