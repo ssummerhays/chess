@@ -1,0 +1,58 @@
+package server.websocket;
+
+import chess.ChessGame;
+import com.google.gson.Gson;
+import dataaccess.*;
+import model.AuthData;
+import org.eclipse.jetty.websocket.api.Session;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import org.eclipse.jetty.websocket.api.annotations.WebSocket;
+import websocket.commands.UserGameCommand;
+import websocket.messages.Notification;
+
+import java.io.IOException;
+
+@WebSocket
+public class WebSocketHandler {
+
+  private final ConnectionManager connections = new ConnectionManager();
+
+  UserDataAccess userDAO;
+  AuthDataAccess authDAO;
+  GameDataAccess gameDAO;
+
+  public void setDataAccesses(UserDataAccess userDAO, AuthDataAccess authDAO, GameDataAccess gameDAO) {
+    this.userDAO = userDAO;
+    this.authDAO = authDAO;
+    this.gameDAO = gameDAO;
+  }
+
+  @OnWebSocketMessage
+  public void onMessage(Session session, String message) throws IOException {
+    UserGameCommand command = new Gson().fromJson(message, UserGameCommand.class);
+    String authToken = command.getAuthToken();
+
+    switch (command.getCommandType()) {
+      case CONNECT -> connect(authToken, session, command.getGameID(), command.getColor());
+    }
+  }
+
+  private void connect(String authToken, Session session, int gameID, ChessGame.TeamColor color) throws IOException {
+    try {
+      AuthData authData = authDAO.getAuth(authToken);
+      String username = authData.username();
+      String colorStr;
+      if (color == null) {
+        colorStr = "observer";
+      } else {
+        colorStr = (color == ChessGame.TeamColor.WHITE)? "white" : "black";
+      }
+
+      connections.add(authToken, session, gameID);
+      Notification notification = new Notification("%s has joined the game as %s".formatted(username, colorStr));
+      connections.broadcast(authToken, gameID, notification);
+    } catch (DataAccessException e) {
+      throw new IOException();
+    }
+  }
+}
