@@ -3,6 +3,8 @@ package server;
 import dataaccess.*;
 import handler.GameHandler;
 import handler.UserHandler;
+import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
+import server.websocket.WebSocketHandler;
 import service.GameService;
 import service.UserService;
 import spark.*;
@@ -17,11 +19,15 @@ public class Server {
     public AuthDataAccess authDataAccess;
     public GameDataAccess gameDataAccess;
 
+    private WebSocketHandler webSocketHandler;
+
     public Server(UserService userService, GameService gameService) {
         this.userService = userService;
         this.gameService = gameService;
         this.userHandler = new UserHandler(userService);
         this.gameHandler = new GameHandler(gameService);
+        this.webSocketHandler = new WebSocketHandler();
+        webSocketHandler.setDataAccesses(userService.userDAO, userService.authDAO, userService.gameDAO);
     }
 
     public Server() {
@@ -42,6 +48,8 @@ public class Server {
 
             this.userHandler=new UserHandler(userService);
             this.gameHandler=new GameHandler(gameService);
+
+            this.webSocketHandler.setDataAccesses(userDataAccess, authDataAccess, gameDataAccess);
         } catch (Throwable e) {
 
         }
@@ -53,6 +61,8 @@ public class Server {
         Spark.staticFiles.location("web");
 
         // Register your endpoints and handle exceptions here.
+        Spark.webSocket("/ws", webSocketHandler);
+
         Spark.post("/user", userHandler::register);
         Spark.post("/session", userHandler::login);
         Spark.delete("/session", userHandler::logout);
