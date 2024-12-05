@@ -3,7 +3,6 @@ package server;
 import dataaccess.*;
 import handler.GameHandler;
 import handler.UserHandler;
-import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import server.websocket.WebSocketHandler;
 import service.GameService;
 import service.UserService;
@@ -49,6 +48,7 @@ public class Server {
             this.userHandler=new UserHandler(userService);
             this.gameHandler=new GameHandler(gameService);
 
+            this.webSocketHandler = new WebSocketHandler();
             this.webSocketHandler.setDataAccesses(userDataAccess, authDataAccess, gameDataAccess);
         } catch (Throwable e) {
 
