@@ -27,8 +27,9 @@ class GameDataAccessTest {
       String gameJSON1 = new Gson().toJson(game1);
       String gameJSON2 = new Gson().toJson(game2);
       String[] statements={
-              "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (1, 'whiteUser', 'blackUser', 'game1', ?);",
-              "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON) VALUES (2, NULL, NULL, 'game2', ?);"
+              "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON, gameOver) VALUES (1, 'whiteUser', 'blackUser', " +
+                      "'game1', ?, 0);",
+              "INSERT INTO gameData (gameID, whiteUsername, blackUsername, gameName, gameJSON, gameOver) VALUES (2, NULL, NULL, 'game2', ?, 0);"
       };
       int counter=1;
       for (var statement : statements) {
