@@ -192,7 +192,7 @@ public class ChessClient {
 
       serverFacade.joinGame(authToken, teamColorStr, gameID);
       try {
-        ws = new WebSocketFacade(serverURL, notificationHandler);
+        ws = new WebSocketFacade(serverURL, notificationHandler, this);
         ws.connectToGame(authToken, gameID, teamColor);
       } catch (Exception e) {
         throw new ResponseException(400, "Error connecting to WebSocket");
@@ -203,7 +203,8 @@ public class ChessClient {
       currentColor = teamColor;
 
       updateGameList();
-      return printGame(gameID, teamColor);
+      ChessGame game = gameData.game();
+      return "";
     }
     throw new ResponseException(400, "Expected: <gameID> [WHITE|BLACK]");
   }
@@ -225,14 +226,16 @@ public class ChessClient {
       GameData gameData = gameListArray[gameID - 1];
       assertGameNotOver(gameData);
       try {
-        ws = new WebSocketFacade(serverURL, notificationHandler);
+        ws = new WebSocketFacade(serverURL, notificationHandler, this);
         ws.connectToGame(authToken, gameID, null);
       } catch (Exception e) {
         throw new ResponseException(400, "Error connecting to WebSocket");
       }
       state = State.IN_GAME_OBSERVER;
       currentGameID = gameID;
-      return printGame(gameID, ChessGame.TeamColor.WHITE);
+      updateGameList();
+      ChessGame game = gameData.game();
+      return "";
     }
     throw new ResponseException(400, "Expected: <gameID>");
   }
@@ -247,7 +250,7 @@ public class ChessClient {
       updateGameList();
     }
     try {
-      ws = new WebSocketFacade(serverURL, notificationHandler);
+      ws = new WebSocketFacade(serverURL, notificationHandler, this);
       ws.leaveGame(authToken, currentGameID, currentColor);
     } catch (Exception e) {
       throw new ResponseException(400, "Error connecting to WebSocket");
@@ -336,7 +339,9 @@ public class ChessClient {
       }
       GameData data = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game, 0);
       serverFacade.updateGame(authToken, data);
-      return printGame(currentGameID, currentColor);
+      updateGameList();
+      ChessGame printGame = data.game();
+      return printGame(printGame, currentColor);
     }
     throw new ResponseException(400, "Error: expected <startingPosition endingPosition promotionPiece?>");
   }
@@ -364,14 +369,17 @@ public class ChessClient {
   public String redrawBoard() throws ResponseException {
     assertLoggedIn();
     assertInGame();
-    return printGame(currentGameID, currentColor);
+    updateGameList();
+    GameData gameData = gameListArray[currentGameID - 1];
+    ChessGame game = gameData.game();
+    return printGame(game, currentColor);
   }
 
   public String resign() throws ResponseException {
     assertLoggedIn();
     assertPlayer();
     try {
-      ws = new WebSocketFacade(serverURL, notificationHandler);
+      ws = new WebSocketFacade(serverURL, notificationHandler, this);
       ws.resign(authToken, currentGameID, currentColor);
     } catch (Exception e) {
       throw new ResponseException(400, "Error connecting to WebSocket");
@@ -419,10 +427,8 @@ public class ChessClient {
     Arrays.sort(gameListArray, Comparator.comparingInt(GameData::gameID));
   }
 
-  private String printGame(int gameID, ChessGame.TeamColor color) throws ResponseException{
-    updateGameList();
-    GameData gameData = gameListArray[gameID - 1];
-    ChessGame game = gameData.game();
+  public String printGame(ChessGame game, ChessGame.TeamColor color) {
+
     String firstLastRow = (color == ChessGame.TeamColor.WHITE)?
             SET_BG_COLOR_LIGHT_GREY + EMPTY + SET_TEXT_COLOR_BLACK + "  a" + EMPTY + " b" + EMPTY + " c" + EMPTY + " d" + EMPTY + " e" +
                     EMPTY + " f" + EMPTY + " g" + EMPTY + " h  " + EMPTY + RESET_BG_COLOR + "\n"
