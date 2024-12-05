@@ -2,6 +2,7 @@ package server.websocket;
 
 import com.google.gson.Gson;
 import org.eclipse.jetty.websocket.api.Session;
+import websocket.messages.Error;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
@@ -39,5 +40,28 @@ public class ConnectionManager {
     for (var c : removeList) {
       connections.remove(c.authToken);
     }
+  }
+
+  public void broadCastSelf(String authToken, ServerMessage message) throws IOException {
+    var removeList = new ArrayList<Connection>();
+    for (var c : connections.values()) {
+      if (c.session.isOpen()) {
+        if (c.authToken.equals(authToken)) {
+          String jsonMessage = new Gson().toJson(message);
+          c.send(jsonMessage);
+        }
+      } else {
+        removeList.add(c);
+      }
+    }
+
+    // Clean up any connections that were left open.
+    for (var c : removeList) {
+      connections.remove(c.authToken);
+    }
+  }
+
+  public void sendError(String authToken, Error error) throws IOException {
+    broadCastSelf(authToken, error);
   }
 }
