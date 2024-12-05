@@ -274,21 +274,23 @@ public class WebSocketHandler {
           case 8 -> endLetter = "h";
         }
         String end = endLetter + move.getEndPosition().getRow();
+        game.makeMove(move);
+        gameData = gameDAO.getGame(gameID);
 
-        LoadGame loadGame = new LoadGame(gameData.game(), color);
-        connections.broadcast("", gameID, loadGame);
+        LoadGame loadGame = new LoadGame(game, color);
+        connections.broadcastGame( gameID, gameData, loadGame);
 
         Notification notification=new Notification("%s makes move: %s -> %s".formatted(username, start, end));
         connections.broadcast(username, gameID, notification);
         Notification gameStateNotification;
-        game.makeMove(move);
+
         int over = 0;
         if (game.isInCheckmate(oppositeColor)) {
-          gameStateNotification = new Notification("%s wins by checkmate!\n The game is over. Type leave to exit".formatted(username));
+          gameStateNotification = new Notification("%s wins by checkmate!\nThe game is over. Type leave to exit".formatted(username));
           connections.broadcast("", gameID, gameStateNotification);
           over = 1;
         } else if (game.isInStalemate(color)) {
-          gameStateNotification = new Notification("Stalemate!\n The game ends in a draw. Type leave to exit");
+          gameStateNotification = new Notification("Stalemate!\nThe game ends in a draw. Type leave to exit");
           connections.broadcast("", gameID, gameStateNotification);
           over = 1;
         } else if (game.isInCheck(oppositeColor)) {
