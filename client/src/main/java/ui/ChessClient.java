@@ -243,12 +243,6 @@ public class ChessClient {
   public String leaveGame() throws ResponseException {
     assertLoggedIn();
     assertInGame();
-    if (state == State.IN_GAME_PlAYER) {
-      GameData gameData = gameListArray[currentGameID-1];
-      String color = (currentColor == ChessGame.TeamColor.WHITE)? "WHITE" : "BLACK";
-      serverFacade.leaveGamePlayer(authToken, color, gameData.gameID());
-      updateGameList();
-    }
     try {
       ws = new WebSocketFacade(serverURL, notificationHandler, this);
       ws.leaveGame(authToken, currentGameID, currentColor);
@@ -337,11 +331,17 @@ public class ChessClient {
       } catch (InvalidMoveException e) {
         throw new ResponseException(400, "Error: out of turn or invalid move");
       }
-      GameData data = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game, 0);
-      serverFacade.updateGame(authToken, data);
+
+      GameData data = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game, gameData.over());
+      String username = (currentColor == ChessGame.TeamColor.WHITE)? data.whiteUsername() : data.blackUsername();
+      try {
+        ws = new WebSocketFacade(serverURL, notificationHandler, this);
+        ws.makeMove(authToken, currentGameID, move, username);
+      } catch (Exception e) {
+        throw new ResponseException(400, "Error connecting to WebSocket");
+      }
       updateGameList();
-      ChessGame printGame = data.game();
-      return printGame(printGame, currentColor);
+      return "";
     }
     throw new ResponseException(400, "Error: expected <startingPosition endingPosition promotionPiece?>");
   }
