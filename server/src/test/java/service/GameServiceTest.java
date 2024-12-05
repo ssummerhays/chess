@@ -29,9 +29,9 @@ class GameServiceTest {
   private static final String PASSWORD = "correctPassword";
   private static final String EMAIL = "user@example.com";
   private static AuthData user1Auth;
-  private static GameData existingGame1 = new GameData(1, null, null, "game1", new ChessGame());
-  private static GameData existingGame2 = new GameData(2, null, null, "game2", new ChessGame());
-  private static GameData fullGame = new GameData(3, LOGGED_IN_USERNAME, LOGGED_OUT_USERNAME, "fullGame", new ChessGame());
+  private static GameData existingGame1 = new GameData(1, null, null, "game1", new ChessGame(), 0);
+  private static GameData existingGame2 = new GameData(2, null, null, "game2", new ChessGame(), 0);
+  private static GameData fullGame = new GameData(3, LOGGED_IN_USERNAME, LOGGED_OUT_USERNAME, "fullGame", new ChessGame(), 0);
 
   @BeforeAll
   public static void init() {
@@ -46,9 +46,9 @@ class GameServiceTest {
     user1Auth = new AuthData("auth1", LOGGED_IN_USERNAME);
     authDAO.authDataList.add(user1Auth);
 
-    existingGame1 = new GameData(1, null, null, "game1", new ChessGame());
-    existingGame2 = new GameData(2, null, null, "game2", new ChessGame());
-    fullGame = new GameData(3, LOGGED_IN_USERNAME, LOGGED_OUT_USERNAME, "fullGame", new ChessGame());
+    existingGame1 = new GameData(1, null, null, "game1", new ChessGame(), 0);
+    existingGame2 = new GameData(2, null, null, "game2", new ChessGame(), 0);
+    fullGame = new GameData(3, LOGGED_IN_USERNAME, LOGGED_OUT_USERNAME, "fullGame", new ChessGame(), 0);
   }
 
   @BeforeEach
@@ -114,8 +114,8 @@ class GameServiceTest {
   public void joinGameSuccess() {
     JoinGameRequest joinGameRequest1 = new JoinGameRequest(user1Auth.authToken(), ChessGame.TeamColor.WHITE, 1);
     JoinGameRequest joinGameRequest2 = new JoinGameRequest(user1Auth.authToken(), ChessGame.TeamColor.BLACK, 1);
-    GameData expectedGameData1 = new GameData(1, user1Auth.username(), null, existingGame1.gameName(), existingGame1.game());
-    GameData expectedGameData2 = new GameData(1, user1Auth.username(), user1Auth.username(), existingGame1.gameName(), existingGame1.game());
+    GameData expectedGameData1 = new GameData(1, user1Auth.username(), null, existingGame1.gameName(), existingGame1.game(), 0);
+    GameData expectedGameData2 = new GameData(1, user1Auth.username(), user1Auth.username(), existingGame1.gameName(), existingGame1.game(), 0);
     try {
       service.joinGame(joinGameRequest1);
       assertTrue(gameDAO.gameDataList.contains(expectedGameData1));

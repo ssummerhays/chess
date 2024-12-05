@@ -4,7 +4,6 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import dataaccess.DataAccessException;
-import model.GameData;
 import service.GameService;
 import service.requests.*;
 import service.results.CreateGameResult;

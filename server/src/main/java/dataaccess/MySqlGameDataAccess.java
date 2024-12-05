@@ -23,6 +23,7 @@ public class MySqlGameDataAccess implements GameDataAccess {
               `blackUsername` varchar(256),
               `gameName` varchar(256) NOT NULL UNIQUE,
               `gameJSON` varchar(2048) NOT NULL,
+              `gameOver` tinyint(1) NOT NULL,
               PRIMARY KEY (`gameID`)
             ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
             """
@@ -48,8 +49,9 @@ public class MySqlGameDataAccess implements GameDataAccess {
           String blackUserName = rs.getString(3);
           String gameName = rs.getString(4);
           String gameJSON = rs.getString(5);
+          int gameOver = rs.getInt(6);
           ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
-          GameData printedGameData = new GameData(gameID, whiteUsername, blackUserName, gameName, game);
+          GameData printedGameData = new GameData(gameID, whiteUsername, blackUserName, gameName, game, gameOver);
           resultGameDataList.add(printedGameData);
         }
         return resultGameDataList;
@@ -64,7 +66,7 @@ public class MySqlGameDataAccess implements GameDataAccess {
       throw new DataAccessException("Error: bad request");
     }
     try (var conn = DatabaseManager.getConnection()) {
-      String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJSON FROM gameData WHERE gameID=?";
+      String statement = "SELECT gameID, whiteUsername, blackUsername, gameName, gameJSON, gameOver FROM gameData WHERE gameID=?";
       try (var preparedStatement = conn.prepareStatement(statement)) {
         preparedStatement.setInt(1, gameID);
         var rs = preparedStatement.executeQuery();
@@ -74,7 +76,8 @@ public class MySqlGameDataAccess implements GameDataAccess {
         String gameName = rs.getString(4);
         String gameJSON = rs.getString(5);
         ChessGame game = new Gson().fromJson(gameJSON, ChessGame.class);
-        return new GameData(gameID, whiteUsername, blackUserName, gameName, game);
+        int gameOver = rs.getInt(6);
+        return new GameData(gameID, whiteUsername, blackUserName, gameName, game, gameOver);
       }
     } catch (SQLException e) {
       throw new DataAccessException("Error: unauthorized");
@@ -83,12 +86,13 @@ public class MySqlGameDataAccess implements GameDataAccess {
 
   public int createGame(String gameName) throws DataAccessException {
     try (var conn = DatabaseManager.getConnection()) {
-      String statement = "INSERT INTO gameData (whiteUsername, blackUsername, gameName, gameJSON) VALUES (NULL, NULL, ?, ?)";
+      String statement = "INSERT INTO gameData (whiteUsername, blackUsername, gameName, gameJSON, gameOver) VALUES (NULL, NULL, ?, ?, ?)";
       try (var preparedStatement = conn.prepareStatement(statement)) {
         preparedStatement.setString(1, gameName);
         ChessGame newGame = new ChessGame();
         String jsonGame = new Gson().toJson(newGame);
         preparedStatement.setString(2, jsonGame);
+        preparedStatement.setInt(3, 0);
         preparedStatement.executeUpdate();
         int gameID;
         try (var nextPreparedStatement = conn.prepareStatement("SELECT gameID FROM gameData WHERE gameName=?")) {
@@ -182,12 +186,13 @@ public class MySqlGameDataAccess implements GameDataAccess {
   public void updateGame(GameData gameData) throws DataAccessException {
     try (var conn = DatabaseManager.getConnection()) {
 
-      String statement = "UPDATE gameData SET gameJSON = ? WHERE gameID = ?";
+      String statement = "UPDATE gameData SET gameJSON = ?, gameOver = ? WHERE gameID = ?";
       try (var preparedStatement = conn.prepareStatement(statement)) {
         ChessGame game = gameData.game();
         String gameJSON = new Gson().toJson(game, ChessGame.class);
         preparedStatement.setString(1, gameJSON);
-        preparedStatement.setInt(2, gameData.gameID());
+        preparedStatement.setInt(2, gameData.over());
+        preparedStatement.setInt(3, gameData.gameID());
         preparedStatement.executeUpdate();
       }
     } catch (SQLException e) {

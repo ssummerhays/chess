@@ -137,7 +137,7 @@ class UserServiceTest {
   @Test
   @DisplayName("Test Clear")
   public void clearTest() {
-    GameData gameData = new GameData(1, null, null, "name", new ChessGame());
+    GameData gameData = new GameData(1, null, null, "name", new ChessGame(), 0);
     gameDAO.gameDataList.add(gameData);
 
     AuthData authData = new AuthData("token", newUsername);

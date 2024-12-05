@@ -16,8 +16,8 @@ class GameDataAccessTest {
   static MySqlGameDataAccess mySqlGameDAO;
   static ChessGame game1 = new ChessGame();
   static ChessGame game2 = new ChessGame();
-  GameData gameData1 = new GameData(1, "whiteUser", "blackUser", "game1", game1);
-  GameData gameData2 = new GameData(2, null, null, "game2", game2);
+  GameData gameData1 = new GameData(1, "whiteUser", "blackUser", "game1", game1, 0);
+  GameData gameData2 = new GameData(2, null, null, "game2", game2, 0);
   @BeforeAll
   public static void init() throws DataAccessException {
     mySqlGameDAO = new MySqlGameDataAccess();

@@ -15,7 +15,7 @@ public class MemoryGameDataAccess implements GameDataAccess {
     Collection<GameData> resultGamesData = new HashSet<>();
     for (GameData gameData : gameDataList) {
       GameData resultGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(),
-              gameData.gameName(), gameData.game());
+              gameData.gameName(), gameData.game(), gameData.over());
       resultGamesData.add(resultGameData);
     }
     return resultGamesData;
@@ -39,7 +39,7 @@ public class MemoryGameDataAccess implements GameDataAccess {
 
     int gameID = nextGameID;
     nextGameID++;
-    GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
+    GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame(), 0);
     gameDataList.add(gameData);
     return gameID;
   }
@@ -53,14 +53,14 @@ public class MemoryGameDataAccess implements GameDataAccess {
         throw new DataAccessException("Error: already taken");
       }
       gameDataList.remove(gameData);
-      gameData = new GameData(gameData.gameID(), username, gameData.blackUsername(), gameData.gameName(), gameData.game());
+      gameData = new GameData(gameData.gameID(), username, gameData.blackUsername(), gameData.gameName(), gameData.game(), 0);
       gameDataList.add(gameData);
     } else {
       if (!Objects.equals(gameData.blackUsername(), null)) {
         throw new DataAccessException("Error: already taken");
       }
       gameDataList.remove(gameData);
-      gameData = new GameData(gameData.gameID(), gameData.whiteUsername(), username, gameData.gameName(), gameData.game());
+      gameData = new GameData(gameData.gameID(), gameData.whiteUsername(), username, gameData.gameName(), gameData.game(), 0);
       gameDataList.add(gameData);
     }
   }
@@ -74,20 +74,20 @@ public class MemoryGameDataAccess implements GameDataAccess {
         throw new DataAccessException("Error: bad request");
       }
       gameDataList.remove(gameData);
-      gameData = new GameData(gameData.gameID(), null, gameData.blackUsername(), gameData.gameName(), gameData.game());
+      gameData = new GameData(gameData.gameID(), null, gameData.blackUsername(), gameData.gameName(), gameData.game(), 0);
       gameDataList.add(gameData);
     } else {
       if (!Objects.equals(gameData.blackUsername(), username)) {
         throw new DataAccessException("Error: bad request");
       }
       gameDataList.remove(gameData);
-      gameData = new GameData(gameData.gameID(), gameData.whiteUsername(), null, gameData.gameName(), gameData.game());
+      gameData = new GameData(gameData.gameID(), gameData.whiteUsername(), null, gameData.gameName(), gameData.game(), 0);
       gameDataList.add(gameData);
     }
   }
 
   public void updateGame(GameData gameData) throws DataAccessException {
-    GameData originalGameData = new GameData(-1, null, null, "noGame", new ChessGame());
+    GameData originalGameData = new GameData(-1, null, null, "noGame", new ChessGame(), 0);
     for (GameData oldGameData : gameDataList) {
       if (oldGameData.gameID() == gameData.gameID()) {
         originalGameData = oldGameData;
