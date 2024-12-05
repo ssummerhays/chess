@@ -171,6 +171,11 @@ public class WebSocketHandler {
       }
       else {
         String oppositeUsername=(color == ChessGame.TeamColor.WHITE) ? gameData.blackUsername() : gameData.whiteUsername();
+        if (oppositeUsername == null) {
+          Error error = new Error("You are currently the only player in the game");
+          connections.sendError(username, error);
+          return;
+        }
         Notification notification=new Notification("%s resigns. %s has won the game!".formatted(username, oppositeUsername));
         connections.broadcast("", gameID, notification);
         GameData newGameData=new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game(),

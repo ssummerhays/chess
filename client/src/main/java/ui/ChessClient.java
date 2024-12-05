@@ -168,6 +168,9 @@ public class ChessClient {
   public String joinGamePlayer(String... params) throws ResponseException {
     assertLoggedIn();
     assertNotInGame();
+    if (gameListArray == null) {
+      throw new ResponseException(400, "Error: please list games before trying to join");
+    }
     if (params.length == 2) {
       if (!params[0].matches("\\d+")) {
         throw new ResponseException(400, "GameID must be an integer");
@@ -212,6 +215,9 @@ public class ChessClient {
   public String observeGame(String... params) throws ResponseException {
     assertLoggedIn();
     assertNotInGame();
+    if (gameListArray == null) {
+      throw new ResponseException(400, "Error: please list games before trying to observe");
+    }
     if (params.length == 1) {
       if (!params[0].matches("\\d+")) {
         throw new ResponseException(400, "GameID must be an integer");
@@ -384,13 +390,31 @@ public class ChessClient {
   public String resign() throws ResponseException {
     assertLoggedIn();
     assertPlayer();
-    try {
-      ws = new WebSocketFacade(serverURL, notificationHandler, this);
-      ws.resign(authToken, currentGameID, currentColor);
-    } catch (Exception e) {
-      throw new ResponseException(400, "Error connecting to WebSocket");
+    Scanner scanner = new Scanner(System.in);
+    String warning = "\n" + SET_TEXT_COLOR_YELLOW + "WARNING:" + RESET_TEXT_COLOR + " you have typed resign. If you want confirm the resignation type " +
+            "'y'. If you want to cancel the resignation type 'n' >>> " + SET_TEXT_COLOR_BLUE;
+    System.out.print(warning);
+    String result = scanner.nextLine();
+    while (!Objects.equals(result, "y") && !Objects.equals(result, "n")) {
+      System.out.print("Invalid response: please respond with 'y' to resign or 'n' to cancel >>> ");
+      result = scanner.nextLine();
     }
-    return "Successfully resigned. Type leave to exit";
+    if (result.equals("y")) {
+      try {
+        ws=new WebSocketFacade(serverURL, notificationHandler, this);
+        ws.resign(authToken, currentGameID, currentColor);
+      } catch (Exception e) {
+        throw new ResponseException(400, "Error connecting to WebSocket");
+      }
+      updateGameList();
+      if (gameListArray[currentGameID - 1].over() == 1) {
+        return "Successfully resigned. Type leave to exit";
+      } else {
+        return "Canceled resignation";
+      }
+    } else {
+      return "Canceled resignation";
+    }
   }
 
   private void assertLoggedIn() throws ResponseException {
