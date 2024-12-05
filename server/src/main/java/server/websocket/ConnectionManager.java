@@ -12,21 +12,21 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConnectionManager {
   public final ConcurrentHashMap<String, Connection> connections = new ConcurrentHashMap<>();
 
-  public void add(String authToken, Session session, int gameID) {
-    var connection = new Connection(authToken, session, gameID);
-    connections.put(authToken, connection);
+  public void add(String username, Session session, int gameID) {
+    var connection = new Connection(username, session, gameID);
+    connections.put(username, connection);
   }
 
-  public void remove(String authToken) {
-    connections.remove(authToken);
+  public void remove(String username) {
+    connections.remove(username);
   }
 
-  public void broadcast(String excludeAuth, int gameID, ServerMessage message) throws IOException {
+  public void broadcast(String excludeUsername, int gameID, ServerMessage message) throws IOException {
     var removeList = new ArrayList<Connection>();
     for (var c : connections.values()) {
       if (c.session.isOpen()) {
         if (c.gameID == gameID) {
-          if (!c.authToken.equals(excludeAuth)) {
+          if (!c.username.equals(excludeUsername)) {
             String jsonMessage=new Gson().toJson(message);
             c.send(jsonMessage);
           }
@@ -38,15 +38,15 @@ public class ConnectionManager {
 
     // Clean up any connections that were left open.
     for (var c : removeList) {
-      connections.remove(c.authToken);
+      connections.remove(c.username);
     }
   }
 
-  public void broadCastSelf(String authToken, ServerMessage message) throws IOException {
+  public void broadCastSelf(String username, ServerMessage message) throws IOException {
     var removeList = new ArrayList<Connection>();
     for (var c : connections.values()) {
       if (c.session.isOpen()) {
-        if (c.authToken.equals(authToken)) {
+        if (c.username.equals(username)) {
           String jsonMessage = new Gson().toJson(message);
           c.send(jsonMessage);
         }
@@ -57,11 +57,11 @@ public class ConnectionManager {
 
     // Clean up any connections that were left open.
     for (var c : removeList) {
-      connections.remove(c.authToken);
+      connections.remove(c.username);
     }
   }
 
-  public void sendError(String authToken, Error error) throws IOException {
-    broadCastSelf(authToken, error);
+  public void sendError(String username, Error error) throws IOException {
+    broadCastSelf(username, error);
   }
 }
