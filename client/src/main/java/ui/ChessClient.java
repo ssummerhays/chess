@@ -52,6 +52,7 @@ public class ChessClient {
         case "highlight" -> highlightMoves(params);
         case "redraw" -> redrawBoard();
         case "move" -> makeMove(params);
+        case "resign" -> resign();
         default -> help();
       };
     } catch (Exception e) {
@@ -143,18 +144,22 @@ public class ChessClient {
     String result = "";
     for (int i = 1; i <= gameListArray.length; i++) {
       GameData game = gameListArray[i - 1];
-      result += SET_TEXT_ITALIC + i + RESET_TEXT_ITALIC + ". " + game.gameName() + ": ";
-      if (game.whiteUsername() != null && game.blackUsername() != null) {
-        result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (white) vs " +
-                SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
-      } else if (game.whiteUsername() != null) {
-        result += SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE +
-                " (white) vs " + SET_TEXT_COLOR_RED + "(black empty)\n" + SET_TEXT_COLOR_BLUE;
-      } else if (game.blackUsername() != null) {
-        result += SET_TEXT_COLOR_RED + "(white empty)" + SET_TEXT_COLOR_BLUE + " vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA +
-                game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
+      if (game.over() == 0) {
+        result+=SET_TEXT_ITALIC + i + RESET_TEXT_ITALIC + ". " + game.gameName() + ": ";
+        if (game.whiteUsername() != null && game.blackUsername() != null) {
+          result+=SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (white) vs " +
+                  SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
+        } else if (game.whiteUsername() != null) {
+          result+=SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA + game.whiteUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE +
+                  " (white) vs " + SET_TEXT_COLOR_RED + "(black empty)\n" + SET_TEXT_COLOR_BLUE;
+        } else if (game.blackUsername() != null) {
+          result+=SET_TEXT_COLOR_RED + "(white empty)" + SET_TEXT_COLOR_BLUE + " vs " + SET_TEXT_BOLD + SET_TEXT_COLOR_MAGENTA +
+                  game.blackUsername() + RESET_TEXT_BOLD_FAINT + SET_TEXT_COLOR_BLUE + " (black)\n";
+        } else {
+          result+=SET_TEXT_COLOR_RED + "no players in game currently\n" + SET_TEXT_COLOR_BLUE;
+        }
       } else {
-        result += SET_TEXT_COLOR_RED + "no players in game currently\n" + SET_TEXT_COLOR_BLUE;
+        result += i + ". " + game.gameName() + ": " + SET_TEXT_COLOR_YELLOW + "This game has been completed\n" + SET_TEXT_COLOR_BLUE;
       }
     }
     return result;
@@ -175,7 +180,9 @@ public class ChessClient {
       } else if (listNum > gameListArray.length) {
         throw new ResponseException(400, "No game with this id exists");
       }
+      updateGameList();
       GameData gameData = gameListArray[listNum - 1];
+      assertGameNotOver(gameData);
       int gameID = gameData.gameID();
 
       if (!Objects.equals(teamColorStr, "white") && !teamColorStr.equals("black")) {
@@ -214,6 +221,9 @@ public class ChessClient {
       } else if (gameID > gameListArray.length) {
         throw new ResponseException(400, "No game with this id exists");
       }
+      updateGameList();
+      GameData gameData = gameListArray[gameID - 1];
+      assertGameNotOver(gameData);
       try {
         ws = new WebSocketFacade(serverURL, notificationHandler);
         ws.connectToGame(authToken, gameID, null);
@@ -249,6 +259,9 @@ public class ChessClient {
   public String makeMove(String... params) throws ResponseException {
     assertLoggedIn();
     assertPlayer();
+    updateGameList();
+    GameData gameData = gameListArray[currentGameID - 1];
+    assertGameNotOver(gameData);
     if (params.length == 2 || params.length == 3) {
       String start = params[0];
       char startLetter = start.charAt(0);
@@ -310,7 +323,6 @@ public class ChessClient {
         move = new ChessMove(startingPosition, endPosition, null);
       }
 
-      GameData gameData = gameListArray[currentGameID - 1];
       ChessGame game = gameData.game();
       ChessBoard board = game.getBoard();
       ChessPiece piece = board.getPiece(startingPosition);
@@ -322,7 +334,7 @@ public class ChessClient {
       } catch (InvalidMoveException e) {
         throw new ResponseException(400, "Error: out of turn or invalid move");
       }
-      GameData data = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game);
+      GameData data = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game, 0);
       serverFacade.updateGame(authToken, data);
       return printGame(currentGameID, currentColor);
     }
@@ -355,6 +367,18 @@ public class ChessClient {
     return printGame(currentGameID, currentColor);
   }
 
+  public String resign() throws ResponseException {
+    assertLoggedIn();
+    assertPlayer();
+    try {
+      ws = new WebSocketFacade(serverURL, notificationHandler);
+      ws.resign(authToken, currentGameID, currentColor);
+    } catch (Exception e) {
+      throw new ResponseException(400, "Error connecting to WebSocket");
+    }
+    return "Successfully resigned. Type leave to exit";
+  }
+
   private void assertLoggedIn() throws ResponseException {
     if (state == State.LOGGED_OUT) {
       throw new ResponseException(400, "Error: you must sign in");
@@ -376,6 +400,12 @@ public class ChessClient {
   private void assertNotInGame() throws ResponseException {
     if (state == State.IN_GAME_PlAYER || state == State.IN_GAME_OBSERVER) {
       throw new ResponseException(400, "Error: command not available while in game");
+    }
+  }
+
+  private void assertGameNotOver(GameData gameData) throws ResponseException {
+    if (gameData.over() == 1) {
+      throw new ResponseException(400, "Error: this game has completed");
     }
   }
 

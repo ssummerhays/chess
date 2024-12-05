@@ -4,6 +4,7 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import dataaccess.*;
 import model.AuthData;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
@@ -35,6 +36,7 @@ public class WebSocketHandler {
     switch (command.getCommandType()) {
       case CONNECT -> connect(authToken, session, command.getGameID(), command.getColor());
       case LEAVE -> leave(authToken, session, command.getGameID(), command.getColor());
+      case RESIGN -> resign(authToken, session, command.getGameID(), command.getColor());
     }
   }
 
@@ -72,6 +74,23 @@ public class WebSocketHandler {
       Notification notification = new Notification(result);
       connections.broadcast(authToken, gameID, notification);
       connections.remove(authToken);
+    } catch (DataAccessException e) {
+      throw new IOException();
+    }
+  }
+
+  private void resign(String authToken, Session session, int gameID, ChessGame.TeamColor color) throws IOException {
+    try {
+      AuthData authData = authDAO.getAuth(authToken);
+      String username = authData.username();
+
+      GameData gameData = gameDAO.getGame(gameID);
+      String oppositeUsername = (color == ChessGame.TeamColor.WHITE)? gameData.blackUsername() : gameData.whiteUsername();
+      Notification notification = new Notification("%s resigns. %s has won the game!".formatted(username, oppositeUsername));
+      connections.broadcast(authToken, gameID, notification);
+      GameData newGameData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), gameData.game(),
+              1);
+      gameDAO.updateGame(newGameData);
     } catch (DataAccessException e) {
       throw new IOException();
     }
