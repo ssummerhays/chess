@@ -99,7 +99,8 @@ public class WebSocketFacade extends Endpoint {
   }
 
   public void handleLoadGame(LoadGame loadGame) {
-    String result = client.printGame(loadGame.getGame(), loadGame.getColor());
+    ChessGame.TeamColor color = (loadGame.getColor() == null)? ChessGame.TeamColor.WHITE : loadGame.getColor();
+    String result = client.printGame(loadGame.getGame(), color);
     System.out.print(result);
     System.out.println();
     System.out.print("\n" + EscapeSequences.RESET_TEXT_COLOR + "[" + client.state + "] >>> ");

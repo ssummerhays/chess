@@ -260,6 +260,9 @@ public class ChessClient {
     GameData gameData = gameListArray[currentGameID - 1];
     assertGameNotOver(gameData);
     if (params.length == 2 || params.length == 3) {
+      if (params[0].length() != 2) {
+        throw new ResponseException(400, "Error: starting position should be one letter followed by one number");
+      }
       String start = params[0];
       char startLetter = start.charAt(0);
       int startCol;
@@ -280,6 +283,9 @@ public class ChessClient {
       }
       ChessPosition startingPosition = new ChessPosition(startRow, startCol);
 
+      if (params[1].length() != 2) {
+        throw new ResponseException(400, "Error: ending position should be one letter followed by one number");
+      }
       String end = params[1];
       char endLetter = end.charAt(0);
       int endCol;
@@ -428,7 +434,7 @@ public class ChessClient {
   }
 
   public String printGame(ChessGame game, ChessGame.TeamColor color) {
-
+    color = (color == null)? ChessGame.TeamColor.WHITE : color;
     String firstLastRow = (color == ChessGame.TeamColor.WHITE)?
             SET_BG_COLOR_LIGHT_GREY + EMPTY + SET_TEXT_COLOR_BLACK + "  a" + EMPTY + " b" + EMPTY + " c" + EMPTY + " d" + EMPTY + " e" +
                     EMPTY + " f" + EMPTY + " g" + EMPTY + " h  " + EMPTY + RESET_BG_COLOR + "\n"
