@@ -2,9 +2,14 @@ package websocket;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import ui.ChessClient;
+import ui.EscapeSequences;
 import ui.ResponseException;
 import websocket.commands.UserGameCommand;
+import websocket.messages.Error;
+import websocket.messages.LoadGame;
 import websocket.messages.Notification;
+import websocket.messages.ServerMessage;
 
 import javax.websocket.*;
 import java.io.IOException;
@@ -14,12 +19,14 @@ import java.net.URISyntaxException;
 public class WebSocketFacade extends Endpoint {
   Session session;
   NotificationHandler notificationHandler;
+  ChessClient client;
 
-  public WebSocketFacade(String url, NotificationHandler notificationHandler) throws ResponseException {
+  public WebSocketFacade(String url, NotificationHandler notificationHandler, ChessClient client) throws ResponseException {
     try {
       url = url.replace("http", "ws");
       URI socketURI = new URI(url + "/ws");
       this.notificationHandler = notificationHandler;
+      this.client = client;
 
       WebSocketContainer container = ContainerProvider.getWebSocketContainer();
       this.session = container.connectToServer(this, socketURI);
@@ -28,8 +35,20 @@ public class WebSocketFacade extends Endpoint {
       this.session.addMessageHandler(new MessageHandler.Whole<String>() {
         @Override
         public void onMessage(String message) {
-          Notification notification = new Gson().fromJson(message, Notification.class);
-          notificationHandler.notify(notification);
+          ServerMessage messageJson = new Gson().fromJson(message, ServerMessage.class);
+          if (messageJson.getServerMessageType() == ServerMessage.ServerMessageType.NOTIFICATION) {
+            Notification notification = new Gson().fromJson(message, Notification.class);
+            notificationHandler.notify(notification);
+          }
+          else if (messageJson.getServerMessageType() == ServerMessage.ServerMessageType.LOAD_GAME) {
+            LoadGame loadGame = new Gson().fromJson(message, LoadGame.class);
+            handleLoadGame(loadGame);
+          }
+          else if (messageJson.getServerMessageType() == ServerMessage.ServerMessageType.ERROR) {
+            Error error = new Gson().fromJson(message, Error.class);
+            handleError(error);
+          }
+
         };
       });
     } catch (DeploymentException | IOException | URISyntaxException ex) {
@@ -66,5 +85,17 @@ public class WebSocketFacade extends Endpoint {
     } catch (IOException ex) {
       throw new ResponseException(500, ex.getMessage());
     }
+  }
+
+  public void handleLoadGame(LoadGame loadGame) {
+    String result = client.printGame(loadGame.getGame(), loadGame.getColor());
+    System.out.print(result);
+    System.out.println();
+    System.out.print("\n" + EscapeSequences.RESET_TEXT_COLOR + "[" + client.state + "] >>> ");
+  }
+
+  public void handleError(Error error) {
+    System.out.printf("Error: %s", error.getMessage());
+    System.out.println();
   }
 }
