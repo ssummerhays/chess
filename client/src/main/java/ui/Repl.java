@@ -16,9 +16,11 @@ public class Repl implements NotificationHandler {
     System.out.println("♕ Welcome to 240 Chess. Type help to begin");
 
     Scanner scanner = new Scanner(System.in);
-    var result = "";
+    var result = "init";
     while (!result.equals("quit")) {
-      printPrompt();
+      if (!result.isEmpty()) {
+        printPrompt();
+      }
       String line = scanner.nextLine();
 
       try {
