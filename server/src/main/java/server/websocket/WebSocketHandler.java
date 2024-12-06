@@ -261,7 +261,7 @@ public class WebSocketHandler {
         Notification gameStateNotification;
         int over = 0;
         if (game.isInCheckmate(oppositeColor)) {
-          gameStateNotification = new Notification("%s wins by checkmate!\nThe game is over. Type leave to exit".formatted(username));
+          gameStateNotification = new Notification("%s is in checkmate. %s wins!\nThe game is over. Type leave to exit".formatted(opponent, username));
           connections.broadcast("", gameID, gameStateNotification);
           over = 1;
         } else if (game.isInStalemate(color)) {
