@@ -118,6 +118,7 @@ public class MySqlGameDataAccess implements GameDataAccess {
       String whiteUsername;
       String blackUsername;
       String selectStatement = "SELECT whiteUsername, blackUsername FROM gameData WHERE gameID = ?";
+
       try (var preparedSelectStatement = conn.prepareStatement(selectStatement)) {
         preparedSelectStatement.setInt(1, gameData.gameID());
         var rs = preparedSelectStatement.executeQuery();
@@ -153,19 +154,20 @@ public class MySqlGameDataAccess implements GameDataAccess {
       String whiteUsername;
       String blackUsername;
       String selectStatement = "SELECT whiteUsername, blackUsername FROM gameData WHERE gameID = ?";
+
       try (var preparedSelectStatement = conn.prepareStatement(selectStatement)) {
         preparedSelectStatement.setInt(1, gameData.gameID());
         var rs = preparedSelectStatement.executeQuery();
         rs.next();
-        whiteUsername = rs.getString(1);
         blackUsername = rs.getString(2);
+        whiteUsername = rs.getString(1);
       }
 
       String statement = teamColor == ChessGame.TeamColor.WHITE?
               "UPDATE gameData SET whiteUsername = ? WHERE gameID = ?" : "UPDATE gameData SET blackUsername = ? WHERE gameID = ?";
       try (var preparedStatement = conn.prepareStatement(statement)) {
-        preparedStatement.setString(1, null);
         preparedStatement.setInt(2, gameData.gameID());
+        preparedStatement.setString(1, null);
         if (Objects.equals(whiteUsername, username) && teamColor == ChessGame.TeamColor.WHITE) {
           preparedStatement.executeUpdate();
         } else if (Objects.equals(blackUsername, username) && teamColor == ChessGame.TeamColor.BLACK) {

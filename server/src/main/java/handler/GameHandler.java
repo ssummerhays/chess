@@ -67,29 +67,15 @@ public class GameHandler {
   public Object joinGame(Request req, Response res) {
     try {
       JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
-      int gameID;
-      String playerColorString;
-      try {
-        playerColorString = body.get("playerColor").getAsString();
-        gameID = body.get("gameID").getAsInt();
 
-      } catch (Exception e) {
-        res.status(400);
-        res.type("application/json");
-        return "{\"message\": \"Error: bad request\"}";
+      JsonObject info = setUpLeaveJoin(req, res);
+      if (info.has("error")) {
+        return info.get("error").getAsString();
       }
-
-      ChessGame.TeamColor teamColor;
-      if (Objects.equals(playerColorString, "WHITE")) {
-        teamColor = ChessGame.TeamColor.WHITE;
-      } else if (Objects.equals(playerColorString, "BLACK")) {
-        teamColor = ChessGame.TeamColor.BLACK;
-      } else {
-        res.status(400);
-        res.type("application/json");
-        return "{\"message\": \"Error: bad request\"}";
-      }
-      String authToken = req.headers("Authorization");
+      String authToken = info.get("authToken").getAsString();
+      String teamColorStr = body.get("playerColor").getAsString();
+      ChessGame.TeamColor teamColor = (Objects.equals(teamColorStr, "WHITE"))? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+      int gameID = info.get("gameID").getAsInt();
 
       JoinGameRequest joinGameRequest= new JoinGameRequest(authToken, teamColor, gameID);
       service.joinGame(joinGameRequest);
@@ -104,31 +90,16 @@ public class GameHandler {
   }
 
   public Object leaveGame(Request req, Response res) {
+
     try {
-      JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
-      int gameID;
-      String playerColorString;
-      try {
-        playerColorString = body.get("playerColor").getAsString();
-        gameID = body.get("gameID").getAsInt();
-
-      } catch (Exception e) {
-        res.status(400);
-        res.type("application/json");
-        return "{\"message\": \"Error: bad request\"}";
+      JsonObject info = setUpLeaveJoin(req, res);
+      if (info.has("error")) {
+        return info.get("error").getAsString();
       }
-
-      ChessGame.TeamColor teamColor;
-      if (Objects.equals(playerColorString, "WHITE")) {
-        teamColor = ChessGame.TeamColor.WHITE;
-      } else if (Objects.equals(playerColorString, "BLACK")) {
-        teamColor = ChessGame.TeamColor.BLACK;
-      } else {
-        res.status(400);
-        res.type("application/json");
-        return "{\"message\": \"Error: bad request\"}";
-      }
-      String authToken = req.headers("Authorization");
+      String authToken = info.get("authToken").getAsString();
+      String teamColorStr = info.get("color").getAsString();
+      ChessGame.TeamColor teamColor = (Objects.equals(teamColorStr, "WHITE"))? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+      int gameID = info.get("gameID").getAsInt();
 
       LeaveGameRequest leaveGameRequest= new LeaveGameRequest(authToken, teamColor, gameID);
       service.leaveGame(leaveGameRequest);
@@ -140,6 +111,42 @@ public class GameHandler {
     } catch (DataAccessException e) {
       return handleError(e, res);
     }
+  }
+
+  private JsonObject setUpLeaveJoin(Request req, Response res) throws DataAccessException {
+    JsonObject result = new JsonObject();
+
+    JsonObject body = new Gson().fromJson(req.body(), JsonObject.class);
+    int gameID;
+    String playerColorString;
+    try {
+      playerColorString = body.get("playerColor").getAsString();
+      gameID = body.get("gameID").getAsInt();
+
+    } catch (Exception e) {
+      res.status(400);
+      res.type("application/json");
+      result.addProperty("error", "{\"message\": \"Error: bad request\"}");
+      return result;
+    }
+
+    ChessGame.TeamColor teamColor;
+    if (Objects.equals(playerColorString, "WHITE")) {
+      teamColor = ChessGame.TeamColor.WHITE;
+    } else if (Objects.equals(playerColorString, "BLACK")) {
+      teamColor = ChessGame.TeamColor.BLACK;
+    } else {
+      res.status(400);
+      res.type("application/json");
+      result.addProperty("error", "{\"message\": \"Error: bad request\"}");
+      return result;
+    }
+    String authToken = req.headers("Authorization");
+
+    result.addProperty("authToken", authToken);
+    result.addProperty("color", playerColorString);
+    result.addProperty("gameID", gameID);
+    return result;
   }
 
   public Object updateGame(Request req, Response res) {

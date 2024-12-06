@@ -60,23 +60,23 @@ public class WebSocketHandler {
     try {
       gameData=gameDAO.getGame(gameID);
     } catch (DataAccessException e) {
-      Error error = new Error("Error: Game Does Not Exist");
+      Error error = new Error("Error: This Game Does Not Exist");
       connections.sendError(username, error);
       return;
     }
 
     ChessGame.TeamColor color = null;
+    String colorStr = "";
     if (Objects.equals(username, gameData.whiteUsername())) {
       color = ChessGame.TeamColor.WHITE;
+      colorStr = "white";
     } else if (Objects.equals(username, gameData.blackUsername())) {
       color = ChessGame.TeamColor.BLACK;
+      colorStr = "black";
     }
 
-    String colorStr;
     if (color == null) {
       colorStr = "observer";
-    } else {
-      colorStr = (color == ChessGame.TeamColor.WHITE)? "white" : "black";
     }
 
 
@@ -93,7 +93,7 @@ public class WebSocketHandler {
       AuthData authData=authDAO.getAuth(authToken);
       username=authData.username();
     } catch (DataAccessException e) {
-      Error error = new Error("Error: Invalid AuthToken");
+      Error error = new Error("Error: Bad AuthToken");
       connections.sendError(username, error);
       return;
     }
@@ -107,10 +107,10 @@ public class WebSocketHandler {
     }
 
     ChessGame.TeamColor color = null;
-    if (Objects.equals(username, gameData.whiteUsername())) {
-      color = ChessGame.TeamColor.WHITE;
-    } else if (Objects.equals(username, gameData.blackUsername())) {
+    if (Objects.equals(username, gameData.blackUsername())) {
       color = ChessGame.TeamColor.BLACK;
+    } else if (Objects.equals(username, gameData.whiteUsername())) {
+      color = ChessGame.TeamColor.WHITE;
     }
 
     try {
@@ -200,7 +200,6 @@ public class WebSocketHandler {
       ChessPosition startPosition = move.getStartPosition();
       ChessGame game = gameData.game();
       ChessPiece piece = game.getBoard().getPiece(startPosition);
-
       if (piece != null) {
         username = (piece.getTeamColor() == ChessGame.TeamColor.WHITE)? gameData.whiteUsername() : gameData.blackUsername();
       }
@@ -212,7 +211,6 @@ public class WebSocketHandler {
         connections.sendError(username, error);
         return;
       }
-
       String opponent = "";
       ChessGame.TeamColor color = null;
       ChessGame.TeamColor oppositeColor = null;
@@ -225,7 +223,6 @@ public class WebSocketHandler {
         oppositeColor = ChessGame.TeamColor.WHITE;
         opponent = gameData.whiteUsername();
       }
-
       if (color == null) {
         Error error = new Error("Error: Observer cannot make move");
         connections.sendError(username, error);
@@ -236,7 +233,6 @@ public class WebSocketHandler {
         connections.sendError(username, error);
         return;
       }
-
       if (piece == null) {
         Error error = new Error("Error: No piece at this position");
         connections.sendError(username, error);
@@ -254,41 +250,15 @@ public class WebSocketHandler {
         connections.sendError(username, error);
       }
       else {
-        String startLetter = "";
-        switch(startPosition.getColumn()) {
-          case 1 -> startLetter = "a";
-          case 2 -> startLetter = "b";
-          case 3 -> startLetter = "c";
-          case 4 -> startLetter = "d";
-          case 5 -> startLetter = "e";
-          case 6 -> startLetter = "f";
-          case 7 -> startLetter = "g";
-          case 8 -> startLetter = "h";
-        }
-        String start = startLetter + startPosition.getRow();
-
-        String endLetter = "";
-        switch(startPosition.getColumn()) {
-          case 1 -> endLetter = "a";
-          case 2 -> endLetter = "b";
-          case 3 -> endLetter = "c";
-          case 4 -> endLetter = "d";
-          case 5 -> endLetter = "e";
-          case 6 -> endLetter = "f";
-          case 7 -> endLetter = "g";
-          case 8 -> endLetter = "h";
-        }
-        String end = endLetter + move.getEndPosition().getRow();
+        String start = getPositionNotation(startPosition.getColumn(), startPosition.getRow());
+        String end = getPositionNotation(move.getEndPosition().getColumn(), move.getEndPosition().getRow());
         game.makeMove(move);
         gameData = gameDAO.getGame(gameID);
-
         LoadGame loadGame = new LoadGame(game, color);
         connections.broadcastGame( gameID, gameData, loadGame);
-
         Notification notification=new Notification("%s makes move: %s -> %s".formatted(username, start, end));
         connections.broadcast(username, gameID, notification);
         Notification gameStateNotification;
-
         int over = 0;
         if (game.isInCheckmate(oppositeColor)) {
           gameStateNotification = new Notification("%s wins by checkmate!\nThe game is over. Type leave to exit".formatted(username));
@@ -304,10 +274,24 @@ public class WebSocketHandler {
         }
         GameData finalData = new GameData(gameData.gameID(), gameData.whiteUsername(), gameData.blackUsername(), gameData.gameName(), game, over);
         gameDAO.updateGame(finalData);
-
       }
     } catch (Exception e) {
       throw new IOException();
     }
+  }
+
+  private String getPositionNotation(int col, int row) {
+    String letter = "";
+    switch(col) {
+      case 1 -> letter = "a";
+      case 2 -> letter = "b";
+      case 3 -> letter = "c";
+      case 4 -> letter = "d";
+      case 5 -> letter = "e";
+      case 6 -> letter = "f";
+      case 7 -> letter = "g";
+      case 8 -> letter = "h";
+    }
+    return letter + row;
   }
 }
